@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+    node-backend-app:
+        build: .
+        container_name: node-backend-app
+        ports:
+            - '3000:3000'
+        depends_on:
+            - elasticsearch
+            - redis
+        env_file:
+            - .env.docker
+        networks:
+            - elastic-network
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+        container_name: elasticsearch
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+        ports:
+            - '9200:9200'
+            - '9300:9300'
+        networks:
+            - elastic-network
+
+    redis:
+        image: redis:7
+        container_name: redis
+        ports:
+            - '6379:6379'
+        networks:
+            - elastic-network
+
+    worker:
+        build: .
+        container_name: mail-worker
+        command: node dist/queue/mail.worker.js
+        depends_on:
+            - redis
+        env_file:
+            - .env.docker
+        networks:
+            - elastic-network
+
+networks:
+    elastic-network:
+        driver: bridge
