@@ -1,6 +1,5 @@
 import mongoose, { InferSchemaType, Schema } from 'mongoose'
 import bcrypt from 'bcryptjs'
-import { maxHeaderSize } from 'http'
 
 const userSchema = new Schema(
     {
@@ -22,9 +21,9 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
-        address: {
-            type: String,
-        },
+        address: [
+            { type: [String], default: [] }
+        ],
         avatar: {
             url: {
                 type: String,

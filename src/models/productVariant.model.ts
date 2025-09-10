@@ -21,11 +21,11 @@ const productVariantSchema = new Schema(
             type: String,
             required: true,
         },
-        variant_color: String,
-        variant_size: String,
-        variant_RAM: String,
-        variant_Storage: String,
-        variant_CPU: String,
+        attributes: {
+            type: Map,
+            of: String,
+            required: true,
+        },
         variant_description: {
             type: String,
             required: true,
