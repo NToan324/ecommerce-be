@@ -21,9 +21,10 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
-        address: [
-            { type: [String], default: [] }
-        ],
+        address: {
+            type: [String],
+            default: []
+        },
         avatar: {
             url: {
                 type: String,

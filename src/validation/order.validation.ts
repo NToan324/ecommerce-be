@@ -1,4 +1,3 @@
-import email from '@/config/email'
 import { z } from 'zod'
 
 export class OrderValidation {

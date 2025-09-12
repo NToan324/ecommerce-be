@@ -16,10 +16,11 @@ class AuthService {
         if (isEmailExist) {
             throw new BadRequestError('Email already exists')
         }
+
         const newUser = await userModel.create({
             fullName,
             email,
-            address,
+            address: Array.isArray(address) ? address : [address],
             password,
         })
 

@@ -94,7 +94,7 @@ class UserController {
         }: {
             fullName?: string
             phone?: string
-            address?: string
+            address?: [string]
             avatar?: {
                 url?: string
                 public_id?: string
@@ -124,7 +124,7 @@ class UserController {
         }: {
             fullName?: string
             phone?: string
-            address?: string
+            address?: [string]
             avatar?: {
                 url?: string
                 public_id?: string

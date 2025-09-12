@@ -139,12 +139,12 @@ class ProductController {
 
     //Cập nhật biến thể sản phẩm theo id
     async updateProductVariant(req: Request, res: Response) {
-        const productVariantId = req.params.id
+        const { id } = req.params
         const payload = req.body
         res.send(
             await productService.updateProductVariant({
                 payload,
-                productVariantId,
+                productVariantId: id,
             })
         )
     }

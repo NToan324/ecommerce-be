@@ -6,7 +6,7 @@ export class ProductValidation {
         return {
             body: z
                 .object({
-                    product_name: z.string().min(1, 'Product name is required'),
+                    product_name: z.string().nonempty('Product name is required'),
                     brand_id: z
                         .string()
                         .regex(/^[0-9a-fA-F]{24}$/, 'Invalid brand_id'),
@@ -90,15 +90,11 @@ export class ProductValidation {
                     product_id: z
                         .string()
                         .regex(/^[0-9a-fA-F]{24}$/, 'Invalid product_id'),
-                    variant_name: z.string().min(1, 'Variant name is required'),
-                    variant_color: z.string().optional(),
-                    variant_size: z.string().optional(),
-                    variant_RAM: z.string().optional(),
-                    variant_Storage: z.string().optional(),
-                    variant_CPU: z.string().optional(),
+                    variant_name: z.string().nonempty('Variant name is required'),
+                    attributes: z.record(z.string(), z.string().nonempty("Attribute value required")),
                     variant_description: z
                         .string()
-                        .min(1, 'Variant description is required'),
+                        .nonempty('Variant description is required'),
                     price: z.coerce
                         .number()
                         .min(1, 'Price must be greater than 0'),
@@ -132,13 +128,9 @@ export class ProductValidation {
         return {
             body: z
                 .object({
-                    variant_name: z.string().min(1).optional(),
-                    variant_color: z.string().optional(),
-                    variant_size: z.string().optional(),
-                    variant_RAM: z.string().optional(),
-                    variant_Storage: z.string().optional(),
-                    variant_CPU: z.string().optional(),
-                    variant_description: z.string().min(1).optional(),
+                    variant_name: z.string().min(1, 'Variant name is required').optional(),
+                    attributes: z.record(z.string(), z.string().nonempty("Attribute value required")).optional(),
+                    variant_description: z.string().min(1, 'Variant description is required').optional(),
                     price: z.coerce
                         .number()
                         .min(1, 'Price must be greater than 0')

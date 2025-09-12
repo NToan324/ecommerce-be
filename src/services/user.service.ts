@@ -54,7 +54,7 @@ class UserService {
         user_id: string;
         fullName?: string;
         phone?: string;
-        address?: string;
+        address?: [string];
         avatar?: {
             url?: string;
             public_id?: string;

@@ -591,7 +591,7 @@ class ProductService {
     }) {
         const updatedProductVariant =
             await ProductVariantModel.findByIdAndUpdate(
-                { _id: convertToObjectId(productVariantId), isActive: true },
+                { _id: convertToObjectId(productVariantId) },
                 {
                     ...payload,
                 },
@@ -1162,7 +1162,7 @@ class ProductService {
         let total: any
         let response: any[] = []
         try {
-            ;({ total, response } = await elasticsearchService.searchDocuments(
+            ; ({ total, response } = await elasticsearchService.searchDocuments(
                 'product_variants',
                 query
             ))

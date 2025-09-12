@@ -21,7 +21,7 @@ export class UserValidation {
         return {
             body: z.object({
                 fullName: z.string().optional(),
-                address: z.string().optional(),
+                address: z.array(z.string()).optional(),
                 phone: z
                     .string()
                     .regex(/^\d{10}$/, 'Phone number must be 10 digits')
