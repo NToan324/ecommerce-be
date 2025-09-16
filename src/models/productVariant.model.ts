@@ -30,6 +30,10 @@ const productVariantSchema = new Schema(
             type: String,
             required: true,
         },
+        original_price: {
+            type: mongoose.Schema.Types.Double,
+            min: 0,
+        },
         price: {
             type: mongoose.Schema.Types.Double,
             min: 0,

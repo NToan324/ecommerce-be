@@ -21,6 +21,10 @@ const cartSchema = new Schema(
                     required: true,
                     min: 1,
                 },
+                original_price: {
+                    type: mongoose.Schema.Types.Double,
+                    min: 0,
+                },
                 unit_price: {
                     type: mongoose.Schema.Types.Double,
                     required: true,

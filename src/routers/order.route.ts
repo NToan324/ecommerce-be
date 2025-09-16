@@ -30,7 +30,13 @@ router.get('/',
     verifyRole(['ADMIN']),
     asyncHandler(orderController.getOrders))
 
-// Lấy chi tiết đơn hàng theo order_id
+// Lấy chi tiết đơn hàng theo order_id (ADMIN)
+router.get('/:id/admin',
+    verifyJWT,
+    verifyRole(['ADMIN']),
+    asyncHandler(orderController.getOrdersByUserIdAdmin))
+
+// Lấy chi tiết đơn hàng theo order_id (USER)
 router.get('/:id',
     verifyJWT,
     asyncHandler(orderController.getOrderById))

@@ -95,6 +95,9 @@ export class ProductValidation {
                     variant_description: z
                         .string()
                         .nonempty('Variant description is required'),
+                    original_price: z.coerce
+                        .number()
+                        .min(1, 'Original price must be greater than 0'),
                     price: z.coerce
                         .number()
                         .min(1, 'Price must be greater than 0'),
@@ -131,6 +134,10 @@ export class ProductValidation {
                     variant_name: z.string().min(1, 'Variant name is required').optional(),
                     attributes: z.record(z.string(), z.string().nonempty("Attribute value required")).optional(),
                     variant_description: z.string().min(1, 'Variant description is required').optional(),
+                    original_price: z.coerce
+                        .number()
+                        .min(1, 'Original price must be greater than 0')
+                        .optional(),
                     price: z.coerce
                         .number()
                         .min(1, 'Price must be greater than 0')

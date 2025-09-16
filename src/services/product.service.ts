@@ -409,10 +409,10 @@ class ProductService {
             return new OkResponse('No product variants found', [])
         }
 
-        const productVariants = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-        }))
+        const productVariants = response.map((hit: any) => {
+            const { original_price, ...rest } = hit._source;
+            return { _id: hit._id, ...rest };
+        });
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -486,9 +486,11 @@ class ProductService {
         }
 
         // Lấy thông tin của biến thể sản phẩm được tìm thấy
+        const { original_price, ...rest } = response[0]._source || {};
+
         const productVariant = {
             _id: response[0]._id,
-            ...(response[0]._source || {}),
+            ...rest,
         } as unknown as ProductVariant
 
         // Bước 2: Tìm các biến thể khác có cùng product_id
@@ -759,8 +761,6 @@ class ProductService {
                 },
             })
 
-        console.log('Best Selling Products:', bestSellingProducts)
-
         // Lấy danh sách product_variant_id từ kết quả aggregation
         const buckets =
             bestSellingProducts?.aggregations?.best_selling_products?.buckets ||
@@ -770,8 +770,6 @@ class ProductService {
         if (productVariantIds.length === 0) {
             return new OkResponse('No best-selling product variants found', [])
         }
-
-
 
         // Bước 2: Tìm kiếm thông tin chi tiết từ chỉ mục product_variants
         const { total, response } = await elasticsearchService.searchDocuments(
@@ -805,13 +803,14 @@ class ProductService {
         }
 
         // Kết hợp dữ liệu
-        const productVariants = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-            totalSold:
-                buckets.find((bucket: any) => bucket.key === hit._id)?.totalSold
-                    .value || 0,
-        }))
+        const productVariants = response.map((hit: any) => {
+            const { original_price, ...rest } = hit._source;
+            return {
+                _id: hit._id, ...rest, totalSold:
+                    buckets.find((bucket: any) => bucket.key === hit._id)?.totalSold
+                        .value || 0,
+            };
+        });
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -874,10 +873,10 @@ class ProductService {
             return new OkResponse('No discounted product variants found', [])
         }
 
-        const productVariants = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-        }))
+        const productVariants = response.map((hit: any) => {
+            const { original_price, ...rest } = hit._source || {};
+            return { _id: hit._id, ...rest };
+        })
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -1019,10 +1018,10 @@ class ProductService {
             query
         )
 
-        const productVariants = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-        }))
+        const productVariants = response.map((hit: any) => {
+            const { original_price, ...rest } = hit._source || {};
+            return { _id: hit._id, ...rest };
+        })
 
         if (total === 0) {
             return new OkResponse('No product variants found', [])

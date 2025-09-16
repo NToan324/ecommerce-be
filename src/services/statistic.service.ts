@@ -67,7 +67,7 @@ class StatisticService {
         });
     }
 
-    // // Thống kê nâng cao theo thời gian
+    // Thống kê nâng cao theo thời gian
     async getAdvancedStatistics({
         from_date,
         to_date,
@@ -127,6 +127,28 @@ class StatisticService {
         });
         const totalProducts = (productStatsAgg?.aggregations?.totalProducts as { value?: number })?.value || 0;
 
+        // Tổng lợi nhuận
+        const totalProfitAgg = await elasticsearchService.searchAggregations('orders', {
+            size: 0,
+            query,
+            aggs: {
+                totalProfit: {
+                    sum: {
+                        script: {
+                            source: `
+                                double profit = 0;
+                                for (item in params._source.items) {
+                                    profit += (item.unit_price - item.original_price) * item.quantity;
+                                }
+                                return profit;
+                            `
+                        }
+                    }
+                },
+            },
+        });
+        const totalProfit = (totalProfitAgg?.aggregations?.totalProfit as { value?: number })?.value || 0;
+
         // Doanh thu, số lượng đơn hàng, và số lượng sản phẩm theo khoảng thời gian (interval)
         const intervalStatsAgg = await elasticsearchService.searchAggregations('orders', {
             size: 0,
@@ -153,6 +175,19 @@ class StatisticService {
                                 field: 'items.quantity',
                             },
                         },
+                        totalProfit: {
+                            sum: {
+                                script: {
+                                    source: `
+                                        double profit = 0;
+                                        for (item in params._source.items) {
+                                            profit += (item.unit_price - item.original_price) * item.quantity;
+                                        }
+                                        return profit;
+                                    `
+                                }
+                            }
+                        }
                     },
                 },
             },
@@ -165,6 +200,7 @@ class StatisticService {
                 totalRevenue: bucket.totalRevenue.value || 0, // Tổng doanh thu
                 totalOrders: bucket.totalOrders.value || 0, // Tổng số lượng đơn hàng
                 totalProducts: bucket.totalProducts.value || 0, // Tổng số lượng sản phẩm
+                totalProfit: bucket.totalProfit.value || 0, // Tổng lợi nhuận
             })
         );
 
@@ -172,6 +208,7 @@ class StatisticService {
             totalRevenue, // Tổng doanh thu trong khoảng thời gian
             totalOrders, // Tổng số lượng đơn hàng trong khoảng thời gian
             totalProducts, // Tổng số lượng sản phẩm trong khoảng thời gian
+            totalProfit, // Tổng lợi nhuận trong khoảng thời gian
             statsByInterval, // Thống kê theo khoảng thời gian (ngày, tuần, tháng, năm)
         });
     }

@@ -35,6 +35,10 @@ const orderSchema = new Schema(
                     type: Number,
                     min: 1,
                 },
+                original_price: {
+                    type: mongoose.Schema.Types.Double,
+                    min: 0,
+                },
                 unit_price: {
                     type: mongoose.Schema.Types.Double,
                     min: 0,

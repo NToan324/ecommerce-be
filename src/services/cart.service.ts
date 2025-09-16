@@ -54,7 +54,7 @@ class CartService {
 
         const { total: totalCart, response: cart } = cartResponse
 
-        if (totalCart === 0) {
+        if (totalCart === 0) { //If cart not exist, create new cart
             const newCart = await CartModel.create({
                 user_id: userId,
                 items: [
@@ -62,6 +62,7 @@ class CartService {
                         product_variant_id: productVariantId,
                         product_variant_name: productVariant.variant_name,
                         quantity,
+                        original_price: productVariant.original_price,
                         unit_price: productVariant.price,
                         discount: productVariant.discount,
                         images: productVariant.images[0],
@@ -84,9 +85,15 @@ class CartService {
 
             return new CreatedResponse('Cart created successfully', {
                 _id,
-                ...cartWithoutId,
+                ...{
+                    ...cartWithoutId,
+                    items: cartWithoutId.items.map((item: any) => {
+                        const { original_price, ...rest } = item;
+                        return rest;
+                    })
+                }
             })
-        } else {
+        } else {    // If cart exist, update cart
             const cartId = cart[0]?._id?.toString()
 
             const cartSource = cart[0]._source as { items: any[] }
@@ -96,13 +103,14 @@ class CartService {
                     item.product_variant_id.toString() === productVariantId
             )
 
-            if (existingItem) {
+            if (existingItem) { // If item already in cart, update quantity
                 existingItem.quantity += quantity
-            } else {
+            } else {    // If item not in cart, add new item
                 cartSource.items.push({
                     product_variant_id: productVariantId,
                     product_variant_name: productVariant.variant_name,
                     quantity,
+                    original_price: productVariant.original_price,
                     unit_price: productVariant.price,
                     discount: productVariant.discount,
                     images: productVariant.images[0],
@@ -130,7 +138,13 @@ class CartService {
 
             return new OkResponse('Item added to cart successfully', {
                 _id,
-                ...cartWithoutId,
+                ...{
+                    ...cartWithoutId,
+                    items: cartWithoutId.items.map((item: any) => {
+                        const { original_price, ...rest } = item;
+                        return rest;
+                    })
+                }
             })
         }
     }
@@ -154,7 +168,13 @@ class CartService {
 
         const cart: any = {
             _id: response[0]._id,
-            ...(response[0]._source || {}),
+            ...{
+                ...response[0]._source,
+                items: response[0]._source.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
         }
 
         return new OkResponse('Cart retrieved successfully', cart)
@@ -248,7 +268,13 @@ class CartService {
 
         return new OkResponse('Item quantity updated successfully', {
             _id: _id,
-            ...cartWithoutId,
+            ...{
+                ...cartWithoutId,
+                items: cartWithoutId.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
         })
     }
 
@@ -308,7 +334,13 @@ class CartService {
 
         return new OkResponse('Item removed from cart successfully', {
             _id: _id,
-            ...cartWithoutId,
+            ...{
+                ...cartWithoutId,
+                items: cartWithoutId.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
         })
     }
 

@@ -34,7 +34,7 @@ class UserController {
         const limitNumber = parseInt(limit, 10)
 
         res.send(
-            await orderService.getOrderByUserId({
+            await orderService.getOrdersByUserId({
                 user_id: id,
                 page: pageNumber,
                 limit: limitNumber,
@@ -55,7 +55,7 @@ class UserController {
         const limitNumber = parseInt(limit, 10)
 
         res.send(
-            await orderService.getOrderByUserId({
+            await orderService.getOrdersByUserId({
                 user_id: id,
                 page: pageNumber,
                 limit: limitNumber,

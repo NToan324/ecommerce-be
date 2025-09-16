@@ -73,11 +73,19 @@ class OrderController {
         }))
     }
 
-    // Lấy chi tiết đơn hàng theo order_id
+    // Lấy chi tiết đơn hàng theo order_id (USER)
     async getOrderById(req: Request, res: Response) {
         const { id } = req.params;
+        const user_id = (req.user as { id: string }).id
 
-        res.send(await orderService.getOrderById(id));
+        res.send(await orderService.getOrderById(id, user_id));
+    }
+
+    // Lấy chi tiết đơn hàng theo order_id (ADMIN)
+    async getOrdersByUserIdAdmin(req: Request, res: Response) {
+        const { id } = req.params;
+
+        res.send(await orderService.getOrderByIdAdmin(id));
     }
 
     // Cập nhật trạng thái đơn hàng

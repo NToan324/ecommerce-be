@@ -166,6 +166,7 @@ class OrderService {
             product_variant_id: string
             product_variant_name: string
             quantity: number
+            original_price?: number
             unit_price: number
             discount?: number
             images: {
@@ -265,6 +266,8 @@ class OrderService {
                 flagChangePrice = true
             }
 
+            item.original_price = product.original_price
+
             // Kiểm tra số lượng sản phẩm
             if (item.quantity > product.quantity) {
                 throw new BadRequestError(
@@ -274,16 +277,19 @@ class OrderService {
         }
 
         // Kiểm tra trạng thái sản phẩm
-        if (flagChangePrice && user_id) {
-            // Cập nhật lại giá và discount trong Elasticsearch
-            await elasticsearchService.updateDocument('carts', cart[0]._id, {
-                items: cartItems,
-            })
+        if (flagChangePrice) {
 
-            // Cập nhật lại giá và discount trong giỏ hàng của người dùng trong MongoDB
-            await CartModel.findByIdAndUpdate(cart[0]._id, {
-                items: cartItems,
-            })
+            if (user_id) { // Nếu có tài khoản
+                // Cập nhật lại giá và discount trong Elasticsearch
+                await elasticsearchService.updateDocument('carts', cart[0]._id, {
+                    items: cartItems,
+                })
+
+                // Cập nhật lại giá và discount trong giỏ hàng của người dùng trong MongoDB
+                await CartModel.findByIdAndUpdate(cart[0]._id, {
+                    items: cartItems,
+                })
+            }
 
             throw new BadRequestError(
                 `Product information has changed. Please review your cart.`
@@ -351,7 +357,7 @@ class OrderService {
 
         // Nếu số tiền giảm giá lớn hơn tổng tiền hàng, thì không cho phép
         if (totalAmount - discountAmount < 0) {
-            throw new BadRequestError('Mã giảm giá không hợp lệ')
+            throw new BadRequestError('Mã giảm giá không hợp lệ, số tiền giảm giá vượt quá tổng tiền hàng')
         }
 
         // Nếu số tiền giảm giá bằng số điểm thưởng lớn hơn 50% tổng tiền hàng, thì chỉ được giảm tối đa 50% tổng tiền hàng
@@ -542,7 +548,13 @@ class OrderService {
 
         return new CreatedResponse('Order created successfully', {
             _id,
-            ...orderWithoutId,
+            ...{
+                ...orderWithoutId,
+                items: orderWithoutId.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
         })
     }
 
@@ -559,7 +571,7 @@ class OrderService {
         let total: any
         let response: any[] = []
         try {
-            ;({ total, response } = await elasticsearchService.searchDocuments(
+            ; ({ total, response } = await elasticsearchService.searchDocuments(
                 'orders',
                 {
                     from,
@@ -597,7 +609,49 @@ class OrderService {
         })
     }
 
-    async getOrderById(order_id: string) {
+    // Lấy chi tiết đơn hàng theo order_id (USER)
+    async getOrderById(order_id: string, user_id: string) {
+        // Tìm kiếm đơn hàng trong Elasticsearch
+        const { total, response } = await elasticsearchService.searchDocuments(
+            'orders',
+            {
+                query: {
+                    bool: {
+                        must: {
+                            term: {
+                                _id: order_id,
+                            },
+                        },
+                        filter: {
+                            term: {
+                                user_id: user_id,
+                            },
+                        }
+                    }
+                },
+            }
+        )
+
+        // Kiểm tra nếu không tìm thấy đơn hàng
+        if (total === 0) {
+            throw new Error('Order not found')
+        }
+
+        const order = {
+            _id: response[0]._id,
+            ...{
+                ...response[0]._source,
+                items: response[0]._source.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
+        }
+        return new OkResponse('Get order successfully', order)
+    }
+
+    // Lấy chi tiết đơn hàng theo order_id (ADMIN)
+    async getOrderByIdAdmin(order_id: string) {
         // Tìm kiếm đơn hàng trong Elasticsearch
         const { total, response } = await elasticsearchService.searchDocuments(
             'orders',
@@ -615,11 +669,14 @@ class OrderService {
             throw new Error('Order not found')
         }
 
-        const order = { _id: response[0]._id, ...(response[0]._source || {}) }
-        return new OkResponse('Get product successfully', order)
+        const order = {
+            _id: response[0]._id,
+            ...response[0]._source,
+        }
+        return new OkResponse('Get order successfully', order)
     }
 
-    async getOrderByUserId({
+    async getOrdersByUserId({
         user_id,
         page = 1,
         limit = 10,
@@ -634,7 +691,7 @@ class OrderService {
         let total: any
         let response: any[] = []
         try {
-            ;({ total, response } = await elasticsearchService.searchDocuments(
+            ; ({ total, response } = await elasticsearchService.searchDocuments(
                 'orders',
                 {
                     from,
@@ -660,7 +717,13 @@ class OrderService {
         // Xử lý kết quả trả về
         const orders = response.map((hit: any) => ({
             _id: hit._id,
-            ...hit._source,
+            ...{
+                ...hit._source,
+                items: hit._source.items.map((item: any) => {
+                    const { original_price, ...rest } = item;
+                    return rest;
+                })
+            }
         }))
 
         return new OkResponse('Get orders successfully', orders)
