@@ -1,7 +1,7 @@
 import 'module-alias/register'
 import express from 'express'
 import cors from 'cors'
-import connectDB from '@/config/mongodb'
+import connectDB from './config/mongodb'
 import router from '@/routers/index'
 import errorHandler from '@/middleware/errorHandler'
 import bodyParser from 'body-parser'
