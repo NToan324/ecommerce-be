@@ -612,7 +612,7 @@ class OrderService {
     // Lấy chi tiết đơn hàng theo order_id (USER)
     async getOrderById(order_id: string, user_id: string) {
         // Tìm kiếm đơn hàng trong Elasticsearch
-        const { total, response } = await elasticsearchService.searchDocuments(
+        const { total, response }: { total: any; response: any } = await elasticsearchService.searchDocuments(
             'orders',
             {
                 query: {
@@ -653,7 +653,7 @@ class OrderService {
     // Lấy chi tiết đơn hàng theo order_id (ADMIN)
     async getOrderByIdAdmin(order_id: string) {
         // Tìm kiếm đơn hàng trong Elasticsearch
-        const { total, response } = await elasticsearchService.searchDocuments(
+        const { total, response }: { total: any; response: any } = await elasticsearchService.searchDocuments(
             'orders',
             {
                 query: {

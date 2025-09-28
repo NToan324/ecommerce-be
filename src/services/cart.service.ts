@@ -151,7 +151,7 @@ class CartService {
 
     // Get cart by user ID
     async getCart(userId: string) {
-        const { total, response } = await elasticsearchService.searchDocuments(
+        const { total, response }: { total: any; response: any[] } = await elasticsearchService.searchDocuments(
             'carts',
             {
                 query: {

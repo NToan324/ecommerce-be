@@ -1,17 +1,17 @@
 version: '3.8'
 services:
-    node-backend-app:
-        build: .
-        container_name: node-backend-app
-        ports:
-            - '3000:3000'
-        depends_on:
-            - elasticsearch
-            - redis
-        env_file:
-            - .env.docker
-        networks:
-            - elastic-network
+    # node-backend-app:
+    #     build: .
+    #     container_name: node-backend-app
+    #     ports:
+    #         - '3000:3000'
+    #     depends_on:
+    #         - elasticsearch
+    #         - redis
+    #     env_file:
+    #         - .env.docker
+    #     networks:
+    #         - elastic-network
 
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0

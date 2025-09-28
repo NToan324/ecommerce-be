@@ -461,7 +461,7 @@ class ProductService {
     //Lấy biến thể sản phẩm theo id (User)
     async getProductVariantById(id: string) {
         // Bước 1: Tìm biến thể sản phẩm theo ID
-        const { total, response } = await elasticsearchService.searchDocuments(
+        const { total, response }: { total: any; response: any } = await elasticsearchService.searchDocuments(
             'product_variants',
             {
                 query: {
@@ -486,7 +486,7 @@ class ProductService {
         }
 
         // Lấy thông tin của biến thể sản phẩm được tìm thấy
-        const { original_price, ...rest } = response[0]._source || {};
+        const { original_price, ...rest } = response[0]._source;
 
         const productVariant = {
             _id: response[0]._id,
