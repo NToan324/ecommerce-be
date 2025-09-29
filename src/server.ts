@@ -58,7 +58,7 @@ syncElasticsearch().catch((error) => {
 })
 
 // import routes
-app.use(router)
+app.use('/api/v1', router)
 
 
 // handler error
