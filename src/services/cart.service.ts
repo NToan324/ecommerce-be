@@ -54,7 +54,8 @@ class CartService {
 
         const { total: totalCart, response: cart } = cartResponse
 
-        if (totalCart === 0) { //If cart not exist, create new cart
+        if (totalCart === 0) {
+            //If cart not exist, create new cart
             const newCart = await CartModel.create({
                 user_id: userId,
                 items: [
@@ -88,12 +89,13 @@ class CartService {
                 ...{
                     ...cartWithoutId,
                     items: cartWithoutId.items.map((item: any) => {
-                        const { original_price, ...rest } = item;
-                        return rest;
-                    })
-                }
+                        const { original_price, ...rest } = item
+                        return rest
+                    }),
+                },
             })
-        } else {    // If cart exist, update cart
+        } else {
+            // If cart exist, update cart
             const cartId = cart[0]?._id?.toString()
 
             const cartSource = cart[0]._source as { items: any[] }
@@ -103,9 +105,11 @@ class CartService {
                     item.product_variant_id.toString() === productVariantId
             )
 
-            if (existingItem) { // If item already in cart, update quantity
+            if (existingItem) {
+                // If item already in cart, update quantity
                 existingItem.quantity += quantity
-            } else {    // If item not in cart, add new item
+            } else {
+                // If item not in cart, add new item
                 cartSource.items.push({
                     product_variant_id: productVariantId,
                     product_variant_name: productVariant.variant_name,
@@ -141,10 +145,10 @@ class CartService {
                 ...{
                     ...cartWithoutId,
                     items: cartWithoutId.items.map((item: any) => {
-                        const { original_price, ...rest } = item;
-                        return rest;
-                    })
-                }
+                        const { original_price, ...rest } = item
+                        return rest
+                    }),
+                },
             })
         }
     }
@@ -171,10 +175,10 @@ class CartService {
             ...{
                 ...response[0]._source,
                 items: response[0]._source.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         }
 
         return new OkResponse('Cart retrieved successfully', cart)
@@ -271,10 +275,10 @@ class CartService {
             ...{
                 ...cartWithoutId,
                 items: cartWithoutId.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         })
     }
 
@@ -337,10 +341,10 @@ class CartService {
             ...{
                 ...cartWithoutId,
                 items: cartWithoutId.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         })
     }
 
