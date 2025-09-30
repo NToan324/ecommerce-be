@@ -9,7 +9,7 @@ import CartModel from '@/models/cart.model'
 import CouponModel from '@/models/coupon.model'
 import ReviewModel from '@/models/review.model'
 
-let isSynced = true // Cờ kiểm soát đồng bộ
+let isSynced = false // Cờ kiểm soát đồng bộ
 
 export async function syncElasticsearch() {
     if (isSynced) {
