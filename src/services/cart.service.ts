@@ -155,16 +155,14 @@ class CartService {
 
     // Get cart by user ID
     async getCart(userId: string) {
-        const { total, response }: { total: any; response: any[] } = await elasticsearchService.searchDocuments(
-            'carts',
-            {
+        const { total, response }: { total: any; response: any[] } =
+            await elasticsearchService.searchDocuments('carts', {
                 query: {
                     term: {
                         user_id: userId,
                     },
                 },
-            }
-        )
+            })
 
         if (total === 0) {
             return new OkResponse('Cart is empty', [])
