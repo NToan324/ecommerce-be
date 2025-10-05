@@ -118,7 +118,7 @@ class UserService {
         });
 
         if (total === 0) {
-            throw new OkResponse('No users found', {
+            return new OkResponse('No users found', {
                 total: 0,
                 page: 1,
                 limit: 10,
@@ -189,7 +189,7 @@ class UserService {
         });
 
         if (total === 0) {
-            throw new OkResponse('No users found', {
+            return new OkResponse('No users found', {
                 total: 0,
                 page: 1,
                 limit: 10,
