@@ -151,6 +151,31 @@ class CategoryService {
         return new OkResponse('Get category successfully', category)
     }
 
+    async getCategoryByIdServer(id: string) {
+        const { total, response } = await elasticsearchService.searchDocuments(
+            'categories',
+            {
+                query: {
+                    bool: {
+                        must: {
+                            term: {
+                                _id: id,
+                            },
+                        },
+                    },
+                },
+            }
+        );
+
+        if (total === 0) {
+            throw new BadRequestError('Category not found')
+        }
+
+        const category = { _id: response[0]._id, ...(response[0]._source || {}) }
+
+        return category
+    }
+
     async updateCategory({
         id,
         payload,

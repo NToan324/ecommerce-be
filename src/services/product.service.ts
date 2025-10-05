@@ -6,6 +6,7 @@ import elasticsearchService from './elasticsearch.service'
 import ProductVariantModel, {
     ProductVariant,
 } from '@/models/productVariant.model'
+import categoryService from './category.service'
 
 class ProductService {
     // ========================Product========================
@@ -88,10 +89,12 @@ class ProductService {
             })
         }
 
-        const products = response.map((hit: any) => ({
+        let products = response.map((hit: any) => ({
             _id: hit._id,
             ...hit._source,
         }))
+
+        products = await this.mappingCategoryAndBrand(products);
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -104,6 +107,72 @@ class ProductService {
             data: products,
         })
     }
+
+    private async mappingCategoryAndBrand(input: any[] | any){
+        const isArray = Array.isArray(input);
+        const products = isArray ? input : [input];
+
+        if (!products || products.length === 0) {
+            return input;
+        }
+
+        const categoryIds = [...new Set(products.map((p: any) => p.category_id))];
+        const brandIds = [...new Set(products.map((p: any) => p.brand_id))];
+
+        let categoryMap = new Map();
+        let brandMap = new Map();
+
+        if (categoryIds.length > 0) {
+            try {
+                const categoryResponse = await elasticsearchService.searchDocuments('categories', {
+                    size: categoryIds.length,
+                    query: {
+                        terms: {
+                            _id: categoryIds
+                        }
+                    },
+                    _source: ['category_name']
+                });
+
+                categoryResponse.response.forEach((hit: any) => {
+                    categoryMap.set(hit._id, hit._source.category_name);
+                });
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        }
+
+        if (brandIds.length > 0) {
+            try {
+                const brandResponse = await elasticsearchService.searchDocuments('brands', {
+                    size: brandIds.length,
+                    query: {
+                        terms: {
+                            _id: brandIds
+                        }
+                    },
+                    _source: ['brand_name']
+                });
+
+                brandResponse.response.forEach((hit: any) => {
+                    brandMap.set(hit._id, hit._source.brand_name);
+                });
+            } catch (error) {
+                console.error('Error fetching brands:', error);
+            }
+        }
+
+        const mappedProducts = products.map((product: any) => {
+            return {
+                ...product,
+                category_name: categoryMap.get(product.category_id) || null,
+                brand_name: brandMap.get(product.brand_id) || null,
+            };
+        });
+
+        return isArray ? mappedProducts : mappedProducts[0];
+    }
+
 
     //Lấy sản phẩm theo id
     async getProductById(id: string) {
@@ -126,7 +195,10 @@ class ProductService {
             throw new BadRequestError('Sản phẩm không tồn tại')
         }
 
-        const product = { _id: response[0]._id, ...(response[0]._source || {}) }
+        let product = { _id: response[0]._id, ...(response[0]._source || {}) }
+
+        product = await this.mappingCategoryAndBrand(product);
+
         return new OkResponse('Get product successfully', product)
     }
 
@@ -296,9 +368,11 @@ class ProductService {
             })
         }
 
-        const products = response.map((hit: any) => {
+        let products = response.map((hit: any) => {
             return { _id: hit._id, ...hit._source }
         })
+
+        products = await this.mappingCategoryAndBrand(products)
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -379,10 +453,12 @@ class ProductService {
             })
         }
 
-        const productVariants = response.map((hit: any) => ({
+        let productVariants = response.map((hit: any) => ({
             _id: hit._id,
             ...hit._source,
         }))
+
+        productVariants = await this.mappingCategoryAndBrand(productVariants)
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -433,10 +509,12 @@ class ProductService {
             })
         }
 
-        const productVariants = response.map((hit: any) => {
+        let productVariants = response.map((hit: any) => {
             const { original_price, ...rest } = hit._source;
             return { _id: hit._id, ...rest };
         });
+
+        productVariants = await this.mappingCategoryAndBrand(productVariants)
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -471,10 +549,12 @@ class ProductService {
         }
 
         // Lấy thông tin của biến thể sản phẩm được tìm thấy
-        const productVariant = {
+        let productVariant = {
             _id: response[0]._id,
             ...(response[0]._source || {}),
         }
+
+        productVariant = await this.mappingCategoryAndBrand(productVariant)
 
         return new OkResponse(
             'Get product variant successfully',
@@ -512,10 +592,12 @@ class ProductService {
         // Lấy thông tin của biến thể sản phẩm được tìm thấy
         const { original_price, ...rest } = response[0]._source;
 
-        const productVariant = {
+        let productVariant = {
             _id: response[0]._id,
             ...rest,
         } as unknown as ProductVariant
+
+        productVariant = await this.mappingCategoryAndBrand(productVariant)
 
         // Bước 2: Tìm các biến thể khác có cùng product_id
         const relatedVariantsResponse =
@@ -543,10 +625,12 @@ class ProductService {
 
         const relatedVariants = relatedResponse
             .filter((variant: any) => variant._id !== id)
-            .map((hit: any) => ({
-                _id: hit._id,
-                ...hit._source,
-            }))
+            .map((hit: any) => {
+                const { original_price, ...rest } = hit._source;
+                return { _id: hit._id, ...rest };
+            }
+        )
+
 
         return new OkResponse('Get product variant successfully', {
             productVariant,
@@ -687,10 +771,10 @@ class ProductService {
             })
         }
 
-        const products = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-        }))
+        const products = response.map((hit: any) => {
+            const { original_price, ...rest } = hit._source;
+            return { _id: hit._id, ...rest };
+        })
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
