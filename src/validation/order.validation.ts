@@ -1,3 +1,4 @@
+import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants';
 import { z } from 'zod'
 
 export class OrderValidation {
@@ -45,7 +46,7 @@ export class OrderValidation {
                             }),
                         })
                     ).optional(),
-                payment_method: z.enum(['CASH', 'BANK_TRANSFER'], {
+                payment_method: z.nativeEnum(PaymentMethod, {
                     required_error: 'Payment method is required',
                 }),
             }).strict('Invalid field'),
@@ -57,8 +58,8 @@ export class OrderValidation {
         return {
             body: z
                 .object({
-                    status: z.enum(
-                        ['PENDING', 'SHIPPING', 'DELIVERED', 'CANCELLED'],
+                    status: z.nativeEnum(
+                        OrderStatus,
                         {
                             required_error: 'Status is required',
                         }
@@ -78,13 +79,13 @@ export class OrderValidation {
                         .optional(),
                     user_name: z.string().optional(),
                     status: z
-                        .enum(['PENDING', 'SHIPPING', 'DELIVERED', 'CANCELLED'])
+                        .nativeEnum(OrderStatus)
                         .optional(),
                     payment_method: z
-                        .enum(['CASH', 'CREDIT_CARD', 'VNPay'])
+                        .nativeEnum(PaymentMethod)
                         .optional(),
                     payment_status: z
-                        .enum(['PENDING', 'PAID', 'FAILED'])
+                        .nativeEnum(PaymentStatus)
                         .optional(),
                     from_date: z.string().date('Invalid date format').optional(),
                     to_date: z.string().date('Invalid date format').optional(),
