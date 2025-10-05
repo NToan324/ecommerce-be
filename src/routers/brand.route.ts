@@ -3,6 +3,7 @@ import asyncHandler from '@/middleware/asyncHandler'
 import { validationRequest } from '@/middleware/validationRequest'
 import verifyJWT from '@/middleware/verifyJWT'
 import verifyRole from '@/middleware/verifyRoles'
+import upload from '@/storage/multerConfig'
 import { BrandValidation } from '@/validation/brand.validation'
 import { Router } from 'express'
 
@@ -12,6 +13,7 @@ const router = Router()
 router.post('/upload',
     verifyJWT,
     verifyRole(['ADMIN']),
+    upload.single('file'),
     asyncHandler(brandController.uploadImage))
 
 // Tìm kiếm thương hiệu theo tên
