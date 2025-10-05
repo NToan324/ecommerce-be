@@ -127,7 +127,13 @@ class OrderService {
         )
 
         if (total === 0) {
-            return new OkResponse('No order found', [])
+            return new OkResponse('No order found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         // Xử lý kết quả trả về
@@ -589,7 +595,13 @@ class OrderService {
                 }
             ))
         } catch (error: any) {
-            return new OkResponse('No orders found', [])
+            return new OkResponse('No orders found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const orders = response.map((hit: any) => ({
@@ -711,7 +723,9 @@ class OrderService {
                 }
             ))
         } catch (error: any) {
-            return new OkResponse('No orders found', [])
+            return new OkResponse('No orders found', {
+                orders: [],
+            })
         }
 
         // Xử lý kết quả trả về

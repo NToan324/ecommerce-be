@@ -114,7 +114,13 @@ class CouponService {
                 }
             ));
         } catch (error) {
-            return new OkResponse('No coupons found', []);
+            return new OkResponse('No coupons found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            });
         }
 
         const coupons = response.map((hit) => ({

@@ -44,7 +44,13 @@ class CategoryService {
         );
 
         if (total === 0) {
-            return new OkResponse('No categories found', [])
+            return new OkResponse('No categories found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                categories: [],
+            })
         }
         const categories = response.map((hit: any) => {
             return {
@@ -92,7 +98,13 @@ class CategoryService {
         );
 
         if (total === 0) {
-            return new OkResponse('No categories found', [])
+            return new OkResponse('No categories found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                categories: [],
+            })
         }
         const categories = response.map((hit: any) => {
             return {
@@ -233,7 +245,13 @@ class CategoryService {
         )
 
         if (total === 0) {
-            return new OkResponse('No categories found', [])
+            return new OkResponse('No categories found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                categories: [],
+            })
         }
 
         const categories = response.map((hit: any) => ({

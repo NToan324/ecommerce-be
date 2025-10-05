@@ -118,7 +118,13 @@ class UserService {
         });
 
         if (total === 0) {
-            throw new OkResponse('No users found', []);
+            throw new OkResponse('No users found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                users: [],
+            });
         }
 
         const users = response.map((user: any) => {
@@ -183,7 +189,13 @@ class UserService {
         });
 
         if (total === 0) {
-            throw new OkResponse('No users found', []);
+            throw new OkResponse('No users found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                users: [],
+            });
         }
 
         const users = response.map((user: any) => {

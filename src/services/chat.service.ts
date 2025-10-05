@@ -127,7 +127,13 @@ class ChatService {
                 }
             )
         } catch (error) {
-            return new OkResponse('Không có danh sách trò chuyện', [])
+            return new OkResponse('Không có danh sách trò chuyện', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const conversations = response.map((item: any) => {
@@ -219,7 +225,13 @@ class ChatService {
                 }
             )
         } catch (error) {
-            return new OkResponse('Không có danh sách tin nhắn', [])
+            return new OkResponse('Không có danh sách tin nhắn', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const messages = response.map((item: any) => {

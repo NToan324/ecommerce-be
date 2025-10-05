@@ -79,7 +79,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No products found', [])
+            return new OkResponse('No products found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const products = response.map((hit: any) => ({
@@ -281,7 +287,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No products found', [])
+            return new OkResponse('No products found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const products = response.map((hit: any) => {
@@ -358,7 +370,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const productVariants = response.map((hit: any) => ({
@@ -406,7 +424,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const productVariants = response.map((hit: any) => {
@@ -654,7 +678,13 @@ class ProductService {
                 }
             ))
         } catch (error: any) {
-            return new OkResponse('No new products found', [])
+            return new OkResponse('No new products found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const products = response.map((hit: any) => ({
@@ -768,7 +798,13 @@ class ProductService {
         const productVariantIds = buckets.map((bucket: any) => bucket.key)
 
         if (productVariantIds.length === 0) {
-            return new OkResponse('No best-selling product variants found', [])
+            return new OkResponse('No best-selling product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         // Bước 2: Tìm kiếm thông tin chi tiết từ chỉ mục product_variants
@@ -799,7 +835,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         // Kết hợp dữ liệu
@@ -870,7 +912,13 @@ class ProductService {
         )
 
         if (total === 0) {
-            return new OkResponse('No discounted product variants found', [])
+            return new OkResponse('No discounted product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const productVariants = response.map((hit: any) => {
@@ -1024,7 +1072,13 @@ class ProductService {
         })
 
         if (total === 0) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const pageNumber = parseInt(page.toString(), 10)
@@ -1166,7 +1220,13 @@ class ProductService {
                 query
             ))
         } catch (error) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const productVariants = response.map((hit: any) => ({
@@ -1175,7 +1235,13 @@ class ProductService {
         }))
 
         if (total === 0) {
-            return new OkResponse('No product variants found', [])
+            return new OkResponse('No product variants found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const pageNumber = parseInt(page.toString(), 10)

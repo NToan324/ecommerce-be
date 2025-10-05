@@ -45,7 +45,13 @@ class BrandService {
         )
 
         if (total === 0) {
-            return new OkResponse('No brands found', [])
+            return new OkResponse('No brands found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                brands: [],
+            })
         }
 
         const brands = response.map((hit: any) => ({
@@ -92,7 +98,13 @@ class BrandService {
         )
 
         if (total === 0) {
-            return new OkResponse('No brands found', [])
+            return new OkResponse('No brands found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                brands: [],
+            })
         }
 
         const brands = response.map((hit: any) => ({
@@ -231,7 +243,13 @@ class BrandService {
         )
 
         if (total === 0) {
-            return new OkResponse('No brands found', [])
+            return new OkResponse('No brands found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                brands: [],
+            })
         }
 
         const brands = response.map((hit: any) => ({
