@@ -149,33 +149,6 @@ class BrandService {
         return new OkResponse('Get brand successfully', brand)
     }
 
-    async getBrandByIdServer(id: string) {
-        const { total, response } = await elasticsearchService.searchDocuments(
-            'brands',
-            {
-                query: {
-                    bool: {
-                        must: {
-                            term: {
-                                _id: id,
-                            },
-                        },
-                    },
-                },
-            }
-        )
-
-        if (total === 0) {
-            throw new BadRequestError('Brand not found')
-        }
-
-        const brand = { _id: response[0]._id, ...(response[0]._source || {}) }
-
-        return brand
-    }
-
-
-
     async updateBrand({
         id,
         payload,

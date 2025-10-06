@@ -24,6 +24,7 @@ class ElasticsearchService {
                 index,
                 id,
                 body: document,
+                refresh: 'true'
             })
             return response
         } catch (error) {
@@ -81,6 +82,7 @@ class ElasticsearchService {
                 body: {
                     doc: document,
                 },
+                refresh: 'true'
             })
             return response
         } catch (error) {
@@ -95,6 +97,7 @@ class ElasticsearchService {
             const response = await this.client.delete({
                 index,
                 id,
+                refresh: 'true'
             })
             return response
         } catch (error) {

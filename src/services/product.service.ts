@@ -108,7 +108,7 @@ class ProductService {
         })
     }
 
-    private async mappingCategoryAndBrand(input: any[] | any){
+    private async mappingCategoryAndBrand(input: any[] | any) {
         const isArray = Array.isArray(input);
         const products = isArray ? input : [input];
 
@@ -595,7 +595,7 @@ class ProductService {
         let productVariant = {
             _id: response[0]._id,
             ...rest,
-        } as unknown as ProductVariant
+        }
 
         productVariant = await this.mappingCategoryAndBrand(productVariant)
 
@@ -629,7 +629,7 @@ class ProductService {
                 const { original_price, ...rest } = hit._source;
                 return { _id: hit._id, ...rest };
             }
-        )
+            )
 
 
         return new OkResponse('Get product variant successfully', {
