@@ -1,16 +1,16 @@
 import 'module-alias/register'
 import express from 'express'
 import cors from 'cors'
-import connectDB from './config/mongodb'
+import connectDB from '@/config/mongodb'
 import router from '@/routers/index'
 import errorHandler from '@/middleware/errorHandler'
 import bodyParser from 'body-parser'
 import dotEnv from 'dotenv'
 import cookieParser from 'cookie-parser'
-import { syncElasticsearch } from './helpers/syncElasticsearch'
+import { syncElasticsearch } from '@/helpers/syncElasticsearch'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
-import websocketRoutes from './routers/websocket.router'
+import websocketRoutes from '@/routers/websocket.router'
 
 dotEnv.config()
 
@@ -23,24 +23,20 @@ app.use(
 )
 
 // Setup WebSocket
-const server = createServer(app); // Tạo HTTP server
-const io = new Server(server,
-    {
-        cors: {
-            origin: '*',
-        },
-    }
-);
-
+const server = createServer(app) // Tạo HTTP server
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+    },
+})
 
 const port =
     process.env.NODE_ENV === 'development'
         ? process.env.DEV_PORT || 3000
         : process.env.PROD_PORT || 8080
 
-
 // Setup WebSocket routes
-websocketRoutes(io);
+websocketRoutes(io)
 
 //Middleware
 app.use(express.json({ limit: '50mb' }))
@@ -59,7 +55,6 @@ syncElasticsearch().catch((error) => {
 
 // import routes
 app.use('/api/v1', router)
-
 
 // handler error
 app.use(errorHandler.notFoundError)

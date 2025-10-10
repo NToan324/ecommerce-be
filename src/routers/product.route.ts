@@ -19,7 +19,8 @@ router.get(
 )
 
 // Tìm kiếm sản phẩm theo tên, danh mục, thương hiệu
-router.get('/search',
+router.get(
+    '/search',
     verifyJWT,
     verifyRole(['ADMIN']),
     asyncHandler(productController.searchProduct)

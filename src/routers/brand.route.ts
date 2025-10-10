@@ -10,51 +10,66 @@ import { Router } from 'express'
 const router = Router()
 
 // upload ảnh thương hiệu
-router.post('/upload',
+router.post(
+    '/upload',
     verifyJWT,
     verifyRole(['ADMIN']),
     upload.single('file'),
-    asyncHandler(brandController.uploadImage))
+    asyncHandler(brandController.uploadImage)
+)
 
 // Tìm kiếm thương hiệu theo tên
-router.get('/search',
+router.get(
+    '/search',
     verifyJWT,
     verifyRole(['ADMIN']),
     validationRequest(BrandValidation.searchBrand()),
-    asyncHandler(brandController.searchBrands))
+    asyncHandler(brandController.searchBrands)
+)
 
 // Tạo thương hiệu
-router.post('/',
+router.post(
+    '/',
     verifyJWT,
     verifyRole(['ADMIN']),
     validationRequest(BrandValidation.createBrand()),
-    asyncHandler(brandController.createBrand))
+    asyncHandler(brandController.createBrand)
+)
 
 // Lấy danh sách thương hiệu (User)
 router.get('/', asyncHandler(brandController.getBrands))
 
 // Lấy danh sách thương hiệu (Admin)
-router.get('/admin',
+router.get(
+    '/admin',
     verifyJWT,
     verifyRole(['ADMIN']),
-    asyncHandler(brandController.getBrandsAdmin))
+    asyncHandler(brandController.getBrandsAdmin)
+)
 
 // Lấy chi tiết thương hiệu theo id
-router.get('/:id',
+router.get(
+    '/:id',
     verifyJWT,
     verifyRole(['ADMIN']),
-    asyncHandler(brandController.getBrandById))
+    asyncHandler(brandController.getBrandById)
+)
 
 // Cập nhật thương hiệu
-router.put('/:id',
+router.put(
+    '/:id',
     verifyJWT,
     verifyRole(['ADMIN']),
-    validationRequest(BrandValidation.updateBrand()), asyncHandler(brandController.updateBrand))
+    validationRequest(BrandValidation.updateBrand()),
+    asyncHandler(brandController.updateBrand)
+)
 
 // Xóa thương hiệu
-router.delete('/:id',
+router.delete(
+    '/:id',
     verifyJWT,
     verifyRole(['ADMIN']),
-    asyncHandler(brandController.deleteBrand))
+    asyncHandler(brandController.deleteBrand)
+)
 
 export default router
