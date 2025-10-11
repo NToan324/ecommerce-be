@@ -49,7 +49,8 @@ router.put(
 )
 
 // Lấy orders theo user_id (ADMIN)
-router.get('/:id/orders',
+router.get(
+    '/:id/orders',
     verifyJWT,
     verifyRole(['ADMIN']),
     asyncHandler(userController.getOrdersByUserId)
@@ -69,6 +70,14 @@ router.post(
     verifyJWT,
     upload.single('file'),
     asyncHandler(userController.uploadImage)
+)
+
+// tải lên avatar
+router.post(
+    '/upload-multiple',
+    verifyJWT,
+    upload.array('files'),
+    asyncHandler(userController.uploadMultiImages)
 )
 
 // search user

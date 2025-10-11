@@ -175,6 +175,13 @@ class UserController {
         const image = req.file?.path as string
         res.send(await UploadService.uploadImage(image, public_id))
     }
+
+    // Tải lên ảnh avatar
+    async uploadMultiImages(req: Request, res: Response) {
+        const files = req.files as Express.Multer.File[]
+        const uploaded = await UploadService.uploadMultiImages(files)
+        res.send(uploaded)
+    }
 }
 
 export default new UserController()
