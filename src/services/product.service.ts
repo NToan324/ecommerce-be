@@ -820,7 +820,13 @@ class ProductService {
         if (total === 0) {
             return new OkResponse(
                 'No product variants found for this product ID',
-                []
+                {
+                    total: 0,
+                    page: 1,
+                    limit: 10,
+                    totalPage: 0,
+                    data: [],
+                }
             )
         }
 

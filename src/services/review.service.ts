@@ -213,7 +213,16 @@ class ReviewService {
         } catch (error: any) {
             return new OkResponse(
                 'No reviews found for this product variant',
-                []
+                {
+                    total: 0,
+                    page: 1,
+                    limit: 10,
+                    average_rating: 0,
+                    review_count: 0,
+                    reviews_with_rating: 0,
+                    totalPage: 0,
+                    data: [],
+                }
             )
         }
 
