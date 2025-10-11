@@ -406,7 +406,7 @@ class ProductService {
             throw new BadRequestError('Tạo biến thể sản phẩm thất bại')
         }
 
-        const { _id, ...productVariantWithoutId } = newProductVariant.toObject()
+        const { _id, ...productVariantWithoutId } = newProductVariant.toJSON()
 
         // Thêm vào Elasticsearch
         await elasticsearchService.indexDocument(
@@ -712,7 +712,7 @@ class ProductService {
             throw new BadRequestError('Biến thể sản phẩm không tồn tại')
 
         const { _id, ...productVariantWithoutId } =
-            updatedProductVariant.toObject()
+            updatedProductVariant.toJSON()
 
         // Update the product variant in Elasticsearch
         await elasticsearchService.indexDocument(
