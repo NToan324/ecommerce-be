@@ -6,7 +6,6 @@ import elasticsearchService from './elasticsearch.service'
 
 class BrandService {
     async createBrand(payload: Partial<Brand>) {
-
         const newBrand = await brandModel.create({ ...payload })
 
         if (!newBrand) {
@@ -18,10 +17,13 @@ class BrandService {
         await elasticsearchService.indexDocument(
             'brands',
             _id.toString(),
-            brandWithoutId,
+            brandWithoutId
         )
 
-        return new CreatedResponse('Brand created successfully', { _id, ...brandWithoutId })
+        return new CreatedResponse('Brand created successfully', {
+            _id,
+            ...brandWithoutId,
+        })
     }
 
     // Lấy danh sách thương hiệu (Admin)
@@ -92,7 +94,7 @@ class BrandService {
                                 isActive: true,
                             },
                         },
-                    }
+                    },
                 },
             }
         )
@@ -169,10 +171,13 @@ class BrandService {
         await elasticsearchService.updateDocument(
             'brands',
             _id.toString(),
-            brandWithoutId,
+            brandWithoutId
         )
 
-        return new OkResponse('Brand updated successfully', { _id, ...brandWithoutId })
+        return new OkResponse('Brand updated successfully', {
+            _id,
+            ...brandWithoutId,
+        })
     }
 
     async deleteBrand(id: string) {
@@ -191,34 +196,38 @@ class BrandService {
                     },
                 },
             }
-        );
+        )
 
         // Nếu tồn tại ít nhất một sản phẩm, không cho phép xóa brand
         if (!(total === 0)) {
-            throw new BadRequestError('Không thể xóa thương hiệu vì tồn tại sản phẩm liên quan');
+            throw new BadRequestError(
+                'Không thể xóa thương hiệu vì tồn tại sản phẩm liên quan'
+            )
         }
 
         // Tiến hành xóa brand khỏi MongoDB
-        const deletedBrand = await brandModel.findByIdAndDelete(convertToObjectId(id));
+        const deletedBrand = await brandModel.findByIdAndDelete(
+            convertToObjectId(id)
+        )
 
-        if (!deletedBrand) throw new BadRequestError('Thương hiệu không tồn tại');
+        if (!deletedBrand)
+            throw new BadRequestError('Thương hiệu không tồn tại')
 
         // Xóa brand khỏi Elasticsearch index
-        await elasticsearchService.deleteDocument('brands', id);
+        await elasticsearchService.deleteDocument('brands', id)
 
-        return new OkResponse('Xóa thương hiệu thành công', { _id: id });
+        return new OkResponse('Xóa thương hiệu thành công', { _id: id })
     }
 
     async searchBrands({
         name,
         page = 1,
-        limit = 10
+        limit = 10,
     }: {
-        name?: string,
-        page?: number,
+        name?: string
+        page?: number
         limit?: number
     }) {
-
         const from = (page - 1) * limit
         const { total, response } = await elasticsearchService.searchDocuments(
             'brands',
@@ -230,7 +239,7 @@ class BrandService {
                         must: [
                             {
                                 wildcard: {
-                                    "brand_name.keyword": {
+                                    'brand_name.keyword': {
                                         value: `*${name}*`,
                                         case_insensitive: true,
                                     },

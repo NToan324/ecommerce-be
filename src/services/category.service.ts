@@ -17,10 +17,13 @@ class CategoryService {
         await elasticsearchService.indexDocument(
             'categories',
             _id.toString(),
-            categoryWithoutId,
+            categoryWithoutId
         )
 
-        return new CreatedResponse('Category created successfully', { _id: _id, ...categoryWithoutId })
+        return new CreatedResponse('Category created successfully', {
+            _id: _id,
+            ...categoryWithoutId,
+        })
     }
 
     // Lấy danh sách danh mục (Admin)
@@ -41,7 +44,7 @@ class CategoryService {
                     match_all: {},
                 },
             }
-        );
+        )
 
         if (total === 0) {
             return new OkResponse('No categories found', {
@@ -95,7 +98,7 @@ class CategoryService {
                     },
                 },
             }
-        );
+        )
 
         if (total === 0) {
             return new OkResponse('No categories found', {
@@ -126,7 +129,6 @@ class CategoryService {
     }
 
     async getCategoryById(id: string) {
-
         const { total, response } = await elasticsearchService.searchDocuments(
             'categories',
             {
@@ -140,13 +142,16 @@ class CategoryService {
                     },
                 },
             }
-        );
+        )
 
         if (total === 0) {
             throw new BadRequestError('Category not found')
         }
 
-        const category = { _id: response[0]._id, ...(response[0]._source || {}) }
+        const category = {
+            _id: response[0]._id,
+            ...(response[0]._source || {}),
+        }
 
         return new OkResponse('Get category successfully', category)
     }
@@ -171,10 +176,13 @@ class CategoryService {
         await elasticsearchService.updateDocument(
             'categories',
             _id.toString(),
-            categoryWithoutId,
+            categoryWithoutId
         )
 
-        return new OkResponse('Category updated successfully', { _id: _id, ...categoryWithoutId })
+        return new OkResponse('Category updated successfully', {
+            _id: _id,
+            ...categoryWithoutId,
+        })
     }
 
     async deleteCategory(id: string) {
@@ -193,22 +201,27 @@ class CategoryService {
                     },
                 },
             }
-        );
+        )
 
         // Nếu tồn tại ít nhất một sản phẩm, không cho phép xóa category
         if (!(total === 0)) {
-            throw new BadRequestError('Không thể xóa danh mục vì tồn tại sản phẩm liên quan');
+            throw new BadRequestError(
+                'Không thể xóa danh mục vì tồn tại sản phẩm liên quan'
+            )
         }
 
         // Tiến hành xóa category khỏi MongoDB
-        const deletedCategory = await categoryModel.findByIdAndDelete(convertToObjectId(id));
+        const deletedCategory = await categoryModel.findByIdAndDelete(
+            convertToObjectId(id)
+        )
 
-        if (!deletedCategory) throw new BadRequestError('Danh mục không tồn tại');
+        if (!deletedCategory)
+            throw new BadRequestError('Danh mục không tồn tại')
 
         // Xóa category khỏi Elasticsearch index
-        await elasticsearchService.deleteDocument('categories', id);
+        await elasticsearchService.deleteDocument('categories', id)
 
-        return new OkResponse('Xóa danh mục thành công', { _id: id });
+        return new OkResponse('Xóa danh mục thành công', { _id: id })
     }
 
     async searchCategories({
@@ -216,9 +229,9 @@ class CategoryService {
         page = 1,
         limit = 10,
     }: {
-        name: string;
-        page?: number;
-        limit?: number;
+        name: string
+        page?: number
+        limit?: number
     }) {
         const from = (page - 1) * limit
 
@@ -232,12 +245,12 @@ class CategoryService {
                         must: [
                             {
                                 wildcard: {
-                                    "category_name.keyword": {
+                                    'category_name.keyword': {
                                         value: `*${name}*`,
                                         case_insensitive: true,
                                     },
                                 },
-                            }
+                            },
                         ],
                     },
                 },

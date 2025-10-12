@@ -57,10 +57,16 @@ class ProductController {
 
     //Tìm kiếm sản phẩm theo tên, danh mục, thương hiệu
     async searchProduct(req: Request, res: Response) {
-        const { name, category_id, brand_id, page = 1, limit = 10 } = req.query as {
+        const {
+            name,
+            category_id,
+            brand_id,
+            page = 1,
+            limit = 10,
+        } = req.query as {
             name?: string
             category_id?: string
-            brand_id?: string,
+            brand_id?: string
             page?: number
             limit?: number
         }
@@ -215,7 +221,6 @@ class ProductController {
         const pageNumber = parseInt(page, 10)
         const limitNumber = parseInt(limit, 10)
 
-
         res.send(
             await productService.getNewestProductVariants({
                 page: pageNumber,
@@ -238,29 +243,29 @@ class ProductController {
             page = 1,
             limit = 10,
         } = req.query as {
-            name?: string;
-            category_ids?: string | string[];
-            brand_ids?: string | string[];
-            min_price?: number;
-            max_price?: number;
-            ratings?: number;
-            sort_price?: 'asc' | 'desc';
-            sort_name?: 'asc' | 'desc';
-            page?: number;
-            limit?: number;
-        };
+            name?: string
+            category_ids?: string | string[]
+            brand_ids?: string | string[]
+            min_price?: number
+            max_price?: number
+            ratings?: number
+            sort_price?: 'asc' | 'desc'
+            sort_name?: 'asc' | 'desc'
+            page?: number
+            limit?: number
+        }
 
         // Đảm bảo các tham số là mảng
         const categoryIdsArray = Array.isArray(category_ids)
             ? category_ids
             : category_ids
-                ? [category_ids]
-                : []
+            ? [category_ids]
+            : []
         const brandIdsArray = Array.isArray(brand_ids)
             ? brand_ids
             : brand_ids
-                ? [brand_ids]
-                : []
+            ? [brand_ids]
+            : []
 
         res.send(
             await productService.searchProductVariantAdmin({
@@ -292,29 +297,29 @@ class ProductController {
             page = 1,
             limit = 10,
         } = req.query as {
-            name?: string;
-            category_ids?: string | string[];
-            brand_ids?: string | string[];
-            min_price?: number;
-            max_price?: number;
-            ratings?: number;
-            sort_price?: 'asc' | 'desc';
-            sort_name?: 'asc' | 'desc';
-            page?: number;
-            limit?: number;
-        };
+            name?: string
+            category_ids?: string | string[]
+            brand_ids?: string | string[]
+            min_price?: number
+            max_price?: number
+            ratings?: number
+            sort_price?: 'asc' | 'desc'
+            sort_name?: 'asc' | 'desc'
+            page?: number
+            limit?: number
+        }
 
         // Đảm bảo các tham số là mảng
         const categoryIdsArray = Array.isArray(category_ids)
             ? category_ids
             : category_ids
-                ? [category_ids]
-                : []
+            ? [category_ids]
+            : []
         const brandIdsArray = Array.isArray(brand_ids)
             ? brand_ids
             : brand_ids
-                ? [brand_ids]
-                : []
+            ? [brand_ids]
+            : []
 
         res.send(
             await productService.searchProductVariant({
