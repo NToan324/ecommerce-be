@@ -12,14 +12,13 @@ declare module 'socket.io' {
 }
 
 const websocketRoutes = (io: Server) => {
-
     // ====================================== Review ====================================== //
     // Tạo namespace cho review
     const reviewNamespace = io.of('/review')
 
     // Middleware xác thực JWT cho namespace review
     reviewNamespace.use((socket, next) => {
-        const token = socket.handshake.headers.authorization
+        const token = socket.handshake.auth.authorization
 
         if (!token) {
             next()
@@ -97,7 +96,10 @@ const websocketRoutes = (io: Server) => {
 
             if (user_id !== socket.user.id) {
                 console.log('User ID does not match socket user ID')
-                socket.emit('chat_error', 'User ID does not match socket user ID')
+                socket.emit(
+                    'chat_error',
+                    'User ID does not match socket user ID'
+                )
                 return
             }
             const roomId = `user_${user_id}_admin`
@@ -112,7 +114,6 @@ const websocketRoutes = (io: Server) => {
             console.log('User disconnected from chat namespace:', socket.id)
         })
     })
-
 }
 
 export default websocketRoutes
