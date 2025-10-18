@@ -835,6 +835,8 @@ class ProductService {
             ...hit._source,
         }))
 
+        
+
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
         return new OkResponse(
