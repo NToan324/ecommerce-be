@@ -528,7 +528,7 @@ class OrderService {
             if (updatedCoupon) {
                 await elasticsearchService.updateDocument(
                     'coupons',
-                    coupon_code,
+                    _id.toString(),
                     couponWithoutId
                 )
             }
