@@ -91,7 +91,7 @@ export class ProductValidation {
                         .string()
                         .regex(/^[0-9a-fA-F]{24}$/, 'Invalid product_id'),
                     variant_name: z.string().nonempty('Variant name is required'),
-                    attributes: z.record(z.string(), z.string().nonempty("Attribute value required")),
+                    attributes: z.record(z.string(), z.string().nonempty("Attribute value is required")),
                     variant_description: z
                         .string()
                         .nonempty('Variant description is required'),
@@ -132,7 +132,7 @@ export class ProductValidation {
             body: z
                 .object({
                     variant_name: z.string().min(1, 'Variant name is required').optional(),
-                    attributes: z.record(z.string(), z.string().nonempty("Attribute value required")).optional(),
+                    attributes: z.record(z.string(), z.string().nonempty("Attribute value is required")).optional(),
                     variant_description: z.string().min(1, 'Variant description is required').optional(),
                     original_price: z.coerce
                         .number()

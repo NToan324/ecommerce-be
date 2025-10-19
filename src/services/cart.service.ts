@@ -62,6 +62,7 @@ class CartService {
                     {
                         product_variant_id: productVariantId,
                         product_variant_name: productVariant.variant_name,
+                        attributes: productVariant.attributes,
                         quantity,
                         original_price: productVariant.original_price,
                         unit_price: productVariant.price,
@@ -113,6 +114,7 @@ class CartService {
                 cartSource.items.push({
                     product_variant_id: productVariantId,
                     product_variant_name: productVariant.variant_name,
+                    attributes: productVariant.attributes,
                     quantity,
                     original_price: productVariant.original_price,
                     unit_price: productVariant.price,

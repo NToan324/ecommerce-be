@@ -29,6 +29,8 @@ export class OrderValidation {
                             product_variant_name: z
                                 .string()
                                 .nonempty('Product variant name is required'),
+                            attributes: z
+                                .record(z.string(), z.string().nonempty("Attribute value is required")),
                             quantity: z.coerce
                                 .number()
                                 .int('Quantity must be an integer')

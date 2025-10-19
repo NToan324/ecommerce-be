@@ -171,6 +171,7 @@ class OrderService {
         items?: {
             product_variant_id: string
             product_variant_name: string
+            attributes: Record<string, string>
             quantity: number
             original_price?: number
             unit_price: number
