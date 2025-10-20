@@ -1,7 +1,7 @@
-import CouponModel from '@/models/coupon.model';
-import { BadRequestError, NotFoundError } from '@/core/error.response';
-import { OkResponse, CreatedResponse } from '@/core/success.response';
-import elasticsearchService from './elasticsearch.service';
+import CouponModel from '@/models/coupon.model'
+import { BadRequestError, NotFoundError } from '@/core/error.response'
+import { OkResponse, CreatedResponse } from '@/core/success.response'
+import elasticsearchService from './elasticsearch.service'
 
 class CouponService {
     // Tạo mã phiếu giảm giá mới
@@ -10,14 +10,14 @@ class CouponService {
         discount_amount,
         usage_limit,
     }: {
-        code: string;
-        discount_amount: number;
-        usage_limit: number;
+        code: string
+        discount_amount: number
+        usage_limit: number
     }) {
         // Kiểm tra xem mã coupon đã tồn tại chưa
-        const existingCoupon = await CouponModel.findOne({ code });
+        const existingCoupon = await CouponModel.findOne({ code })
         if (existingCoupon) {
-            throw new BadRequestError('Coupon code already exists');
+            throw new BadRequestError('Coupon code already exists')
         }
 
         // Tạo coupon mới
@@ -25,22 +25,25 @@ class CouponService {
             code,
             discount_amount,
             usage_limit,
-        });
+        })
 
         if (!newCoupon) {
-            throw new BadRequestError('Failed to create coupon');
+            throw new BadRequestError('Failed to create coupon')
         }
 
-        const { _id, ...couponWithoutId } = newCoupon.toObject();
+        const { _id, ...couponWithoutId } = newCoupon.toObject()
 
         // Lưu coupon vào Elasticsearch
         await elasticsearchService.indexDocument(
             'coupons',
             _id.toString(),
             couponWithoutId
-        );
+        )
 
-        return new CreatedResponse('Coupon created successfully', { _id: _id.toString(), ...couponWithoutId });
+        return new CreatedResponse('Coupon created successfully', {
+            _id: _id.toString(),
+            ...couponWithoutId,
+        })
     }
 
     // Cập nhật mã phiếu giảm giá
@@ -50,10 +53,10 @@ class CouponService {
         usage_limit,
         isActive,
     }: {
-        code: string; // Sử dụng `code` để tìm coupon
-        discount_amount?: number;
-        usage_limit?: number;
-        isActive?: boolean;
+        code: string // Sử dụng `code` để tìm coupon
+        discount_amount?: number
+        usage_limit?: number
+        isActive?: boolean
     }) {
         // Tìm và cập nhật coupon dựa trên `code`
         const updatedCoupon = await CouponModel.findOneAndUpdate(
@@ -64,22 +67,25 @@ class CouponService {
                 isActive,
             },
             { new: true }
-        );
+        )
 
         if (!updatedCoupon) {
-            throw new NotFoundError('Coupon not found');
+            throw new NotFoundError('Coupon not found')
         }
 
-        const { _id, ...couponWithoutId } = updatedCoupon.toObject();
+        const { _id, ...couponWithoutId } = updatedCoupon.toObject()
 
         // Cập nhật Elasticsearch
         await elasticsearchService.updateDocument(
             'coupons',
             _id.toString(),
             couponWithoutId
-        );
+        )
 
-        return new OkResponse('Coupon updated successfully', { _id: _id.toString(), ...couponWithoutId });
+        return new OkResponse('Coupon updated successfully', {
+            _id: _id.toString(),
+            ...couponWithoutId,
+        })
     }
 
     // Lấy danh sách mã phiếu giảm giá
@@ -87,16 +93,16 @@ class CouponService {
         page = 1,
         limit = 10,
     }: {
-        page?: number;
-        limit?: number;
+        page?: number
+        limit?: number
     }) {
-        const from = (page - 1) * limit;
+        const from = (page - 1) * limit
 
         // Tìm kiếm mã phiếu giảm giá trong Elasticsearch
         let total: any
         let response: any[] = []
         try {
-            ({ total, response } = await elasticsearchService.searchDocuments(
+            ;({ total, response } = await elasticsearchService.searchDocuments(
                 'coupons',
                 {
                     from,
@@ -112,7 +118,7 @@ class CouponService {
                         },
                     ],
                 }
-            ));
+            ))
         } catch (error) {
             return new OkResponse('No coupons found', {
                 total: 0,
@@ -120,13 +126,13 @@ class CouponService {
                 limit: 10,
                 totalPage: 0,
                 data: [],
-            });
+            })
         }
 
         const coupons = response.map((hit) => ({
             _id: hit._id,
             ...hit._source,
-        }));
+        }))
 
         return new OkResponse('Coupons retrieved successfully', {
             total,
@@ -134,7 +140,7 @@ class CouponService {
             limit,
             totalPage: Math.ceil((total ?? 0) / limit),
             data: coupons,
-        });
+        })
     }
 
     // Lấy chi tiết mã phiếu giảm giá theo code (USER)
@@ -147,7 +153,7 @@ class CouponService {
                     bool: {
                         must: {
                             term: {
-                                'code.keyword': code
+                                'code.keyword': code,
                             },
                         },
                         filter: {
@@ -158,15 +164,15 @@ class CouponService {
                     },
                 },
             }
-        );
+        )
 
         if (total === 0) {
-            throw new NotFoundError('Coupon not found');
+            throw new NotFoundError('Coupon not found')
         }
 
-        const coupon = { _id: response[0]._id, ...response[0]._source || {} };
+        const coupon = { _id: response[0]._id, ...(response[0]._source || {}) }
 
-        return new OkResponse('Coupon retrieved successfully', coupon);
+        return new OkResponse('Coupon retrieved successfully', coupon)
     }
 
     async getCouponByCodeAdmin(code: string) {
@@ -176,48 +182,51 @@ class CouponService {
             {
                 query: {
                     term: {
-                        'code.keyword': code
-                    }
-                }
+                        'code.keyword': code,
+                    },
+                },
             }
-        );
+        )
 
         if (total === 0) {
-            throw new NotFoundError('Coupon not found');
+            throw new NotFoundError('Coupon not found')
         }
 
-        const coupon = { _id: response[0]._id, ...response[0]._source || {} };
+        const coupon = { _id: response[0]._id, ...(response[0]._source || {}) }
 
-        return new OkResponse('Coupon retrieved successfully', coupon);
+        return new OkResponse('Coupon retrieved successfully', coupon)
     }
 
     // Xóa mã phiếu giảm giá
     async deleteCoupon(code: string) {
         // Tìm và xóa mã phiếu giảm giá
-        const existingCoupon = await CouponModel.findOne({ code });
+        const existingCoupon = await CouponModel.findOne({ code })
 
         if (!existingCoupon) {
-            throw new NotFoundError('Coupon not found');
+            throw new NotFoundError('Coupon not found')
         }
 
         if ((existingCoupon as any).usage_count > 0) {
-            throw new BadRequestError('Cannot delete coupon that has been used');
+            throw new BadRequestError('Cannot delete coupon that has been used')
         }
 
         // Xóa mã phiếu giảm giá khỏi MongoDB
-        const deletedCoupon = await CouponModel.findOneAndDelete({ code });
+        const deletedCoupon = await CouponModel.findOneAndDelete({ code })
 
         if (!deletedCoupon) {
-            throw new NotFoundError('Coupon not found');
+            throw new NotFoundError('Coupon not found')
         }
 
-        const { code: deletedCode, ...couponWithoutId } = deletedCoupon.toObject();
+        const { code: deletedCode, ...couponWithoutId } =
+            deletedCoupon.toObject()
 
         // Xóa mã phiếu giảm giá khỏi Elasticsearch
-        await elasticsearchService.deleteDocument('coupons', code);
+        await elasticsearchService.deleteDocument('coupons', code)
 
-        return new OkResponse('Coupon deleted successfully', { code: deletedCode });
+        return new OkResponse('Coupon deleted successfully', {
+            code: deletedCode,
+        })
     }
 }
 
-export default new CouponService();
+export default new CouponService()

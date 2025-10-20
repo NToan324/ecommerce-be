@@ -10,11 +10,13 @@ import orderController from '@/controllers/order.controller'
 const router = Router()
 
 // Tìm kiếm đơn hàng theo tên khách hàng, order_id, status, payment_status, payment_method, from_date, to_date
-router.get('/search',
+router.get(
+    '/search',
     verifyJWT,
     verifyRole(['ADMIN']),
     validationRequest(OrderValidation.searchOrder()),
-    asyncHandler(orderController.searchOrder))
+    asyncHandler(orderController.searchOrder)
+)
 
 // Tao đơn hàng
 router.post(
@@ -25,27 +27,31 @@ router.post(
 )
 
 // Lấy danh sách order
-router.get('/',
+router.get(
+    '/',
     verifyJWT,
     verifyRole(['ADMIN']),
-    asyncHandler(orderController.getOrders))
+    asyncHandler(orderController.getOrders)
+)
 
 // Lấy chi tiết đơn hàng theo order_id (ADMIN)
-router.get('/:id/admin',
+router.get(
+    '/:id/admin',
     verifyJWT,
     verifyRole(['ADMIN']),
-    asyncHandler(orderController.getOrdersByUserIdAdmin))
+    asyncHandler(orderController.getOrdersByUserIdAdmin)
+)
 
 // Lấy chi tiết đơn hàng theo order_id (USER)
-router.get('/:id',
-    verifyJWT,
-    asyncHandler(orderController.getOrderById))
+router.get('/:id', verifyJWT, asyncHandler(orderController.getOrderById))
 
 // Cập nhật trạng thái đơn hàng
-router.patch('/:id/status',
+router.patch(
+    '/:id/status',
     verifyJWT,
     verifyRole(['ADMIN']),
     validationRequest(OrderValidation.updateOrderStatus()),
-    asyncHandler(orderController.updateOrderStatus))
+    asyncHandler(orderController.updateOrderStatus)
+)
 
 export default router
