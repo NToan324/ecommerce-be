@@ -76,7 +76,7 @@ class CartService {
                 throw new BadRequestError('Failed to create cart')
             }
 
-            const { _id, ...cartWithoutId } = newCart.toObject()
+            const { _id, ...cartWithoutId } = newCart.toJSON()
 
             // Index the new cart in Elasticsearch
             await elasticsearchService.indexDocument(
@@ -133,7 +133,7 @@ class CartService {
                 throw new BadRequestError('Failed to update cart')
             }
 
-            const { _id, ...cartWithoutId } = updatedCart.toObject()
+            const { _id, ...cartWithoutId } = updatedCart.toJSON()
 
             // Update the cart in Elasticsearch
             await elasticsearchService.indexDocument(
@@ -327,7 +327,7 @@ class CartService {
             throw new BadRequestError('Failed to update cart')
         }
 
-        const { _id, ...cartWithoutId } = updatedCart.toObject()
+        const { _id, ...cartWithoutId } = updatedCart.toJSON()
 
         // Update the cart in Elasticsearch
         await elasticsearchService.indexDocument(

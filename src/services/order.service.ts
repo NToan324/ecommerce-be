@@ -454,7 +454,7 @@ class OrderService {
             throw new BadRequestError('Failed to create order')
         }
 
-        const { _id, ...orderWithoutId } = order.toObject()
+        const { _id, ...orderWithoutId } = order.toJSON()
 
         // Thêm đơn hàng vào Elasticsearch
         await elasticsearchService.indexDocument(
@@ -799,7 +799,7 @@ class OrderService {
             throw new BadRequestError('Error updating order')
         }
 
-        const { _id, ...orderWithoutId } = updatedOrder.toObject()
+        const { _id, ...orderWithoutId } = updatedOrder.toJSON()
 
         // Cập nhật dữ liệu trên Elasticsearch
         await elasticsearchService.updateDocument('orders', order_id, {

@@ -31,6 +31,10 @@ const orderSchema = new Schema(
                     type: String,
                     required: true,
                 },
+                attribute: {
+                    type: Map,
+                    of: String,
+                },
                 quantity: {
                     type: Number,
                     min: 1,
