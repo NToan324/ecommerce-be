@@ -3,6 +3,7 @@ import { OkResponse, CreatedResponse } from '@/core/success.response'
 import { BadRequestError } from '@/core/error.response'
 import productVariantModel from '@/models/productVariant.model'
 import reviewModel, { Review } from '@/models/review.model'
+import { number } from 'zod/v4'
 
 class ReviewService {
     // Thêm review cho sản phẩm
@@ -88,38 +89,38 @@ class ReviewService {
     // Cập nhật average_rating và số lượng review của product variant
     async updateProductVariantStats(
         productVariantId: string,
-        isGetData = false
     ) {
         // Lấy tất cả các review của product variant
         const reviews = await reviewModel.find({
             product_variant_id: productVariantId,
         })
 
-        // Tính toán average_rating
-        const reviewsWithRating = reviews.filter(
-            (review) => review.rating !== undefined && review.rating !== null
-        )
-        const totalRating = reviewsWithRating.reduce(
-            (sum, review) => sum + (review.rating as number),
-            0
-        )
-        const averageRating =
-            reviewsWithRating.length > 0
-                ? totalRating / reviewsWithRating.length
-                : 0
-
-        if (isGetData) {
-            return {
-                average_rating: averageRating,
-                review_count: reviews.length,
-                reviews_with_rating: reviewsWithRating.length,
-            }
+        const ratingDistribution = {
+            one_star: reviews.filter((r) => r.rating === 1).length,
+            two_star: reviews.filter((r) => r.rating === 2).length,
+            three_star: reviews.filter((r) => r.rating === 3).length,
+            four_star: reviews.filter((r) => r.rating === 4).length,
+            five_star: reviews.filter((r) => r.rating === 5).length,
         }
+
+        const reviewsWithRating : number = ratingDistribution.one_star +
+            ratingDistribution.two_star +
+            ratingDistribution.three_star +
+            ratingDistribution.four_star +
+            ratingDistribution.five_star
+        
+        const averageRating = (5*ratingDistribution.five_star +
+            4*ratingDistribution.four_star +
+            3*ratingDistribution.three_star +
+            2*ratingDistribution.two_star +
+            1*ratingDistribution.one_star
+            ) / (reviewsWithRating || 1)
 
         // Cập nhật số lượng review và average_rating trong MongoDB
         await productVariantModel.findByIdAndUpdate(productVariantId, {
             average_rating: averageRating,
             review_count: reviews.length,
+            rating_distribution: ratingDistribution,
         })
 
         // Cập nhật average_rating và review_count trong Elasticsearch
@@ -129,6 +130,7 @@ class ReviewService {
             {
                 average_rating: averageRating,
                 review_count: reviews.length,
+                rating_distribution: ratingDistribution,
             }
         )
     }
@@ -220,6 +222,13 @@ class ReviewService {
                     average_rating: 0,
                     review_count: 0,
                     reviews_with_rating: 0,
+                    rating_distribution: {
+                        one_star: 0,
+                        two_star: 0,
+                        three_star: 0,
+                        four_star: 0,
+                        five_star: 0,
+                    },
                     totalPage: 0,
                     data: [],
                 }
@@ -238,6 +247,7 @@ class ReviewService {
             .map((review: any) => review.user_id)
             .filter((userId: string) => userId !== undefined)
 
+        // Get user details from Elasticsearch
         let users: any[] = []
         if (userIds.length > 0) {
             users = await Promise.all(
@@ -258,6 +268,7 @@ class ReviewService {
             users = []
         }
 
+        // Map user details to reviews
         const userMap = new Map(users.map((user: any) => [user.id, user]))
 
         reviews.forEach((review: any) => {
@@ -267,20 +278,29 @@ class ReviewService {
             }
         })
 
-        const { average_rating, review_count, reviews_with_rating } =
-            (await this.updateProductVariantStats(productVariantId, true)) || {
-                average_rating: 0,
-                review_count: 0,
-                reviews_with_rating: 0,
-            }
+        const ratingDistribution: {
+            one_star?: number
+            two_star?: number
+            three_star?: number
+            four_star?: number
+            five_star?: number
+        } = (productVariant.rating_distribution as any) || {}
+
+        const reviews_with_rating: number =
+            (ratingDistribution.one_star || 0) +
+            (ratingDistribution.two_star || 0) +
+            (ratingDistribution.three_star || 0) +
+            (ratingDistribution.four_star || 0) +
+            (ratingDistribution.five_star || 0)
 
         return new OkResponse('Get reviews successfully', {
             total,
             page,
             limit,
-            average_rating,
-            review_count,
+            average_rating: productVariant.average_rating || 0,
+            review_count: productVariant.review_count || 0,
             reviews_with_rating,
+            rating_distribution: ratingDistribution,
             totalPage: Math.ceil((total ?? 0) / limit),
             data: reviews,
         })

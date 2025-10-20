@@ -162,6 +162,7 @@ class OrderService {
         address,
         items,
         payment_method,
+        using_loyalty_points = true,
     }: {
         user_id?: string
         user_name?: string
@@ -181,6 +182,7 @@ class OrderService {
             }
         }[]
         payment_method: string
+        using_loyalty_points?: boolean
     }) {
         let cartItems = items || [] // Danh sách sản phẩm trong giỏ hàng
         let discountAmount = 0
@@ -342,7 +344,7 @@ class OrderService {
         }
 
         let currentLoyaltyPoints: number = 0.0
-        if (user_id) {
+        if (user_id && using_loyalty_points) {
             const user = await UserModel.findById(user_id)
 
             currentLoyaltyPoints = (user?.loyalty_points as number) || 0.0

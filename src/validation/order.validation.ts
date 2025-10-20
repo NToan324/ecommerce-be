@@ -51,6 +51,9 @@ export class OrderValidation {
                 payment_method: z.nativeEnum(PaymentMethod, {
                     required_error: 'Payment method is required',
                 }),
+                using_loyalty_points: z.coerce
+                    .boolean()
+                    .optional(),
             }).strict('Invalid field'),
         };
     }

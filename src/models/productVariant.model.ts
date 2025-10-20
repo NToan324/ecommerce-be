@@ -54,6 +54,13 @@ const productVariantSchema = new Schema(
             max: 5.0,
             default: 0.0,
         },
+        rating_distribution: {
+            one_star: { type: Number, default: 0 },
+            two_star: { type: Number, default: 0 },
+            three_star: { type: Number, default: 0 },
+            four_star: { type: Number, default: 0 },
+            five_star: { type: Number, default: 0 },
+        },
         review_count: {
             type: Number,
             min: 0,
