@@ -288,12 +288,16 @@ class OrderService {
 
         // Kiểm tra trạng thái sản phẩm
         if (flagChangePrice) {
-
-            if (user_id) { // Nếu có tài khoản
+            if (user_id) {
+                // Nếu có tài khoản
                 // Cập nhật lại giá và discount trong Elasticsearch
-                await elasticsearchService.updateDocument('carts', cart[0]._id, {
-                    items: cartItems,
-                })
+                await elasticsearchService.updateDocument(
+                    'carts',
+                    cart[0]._id,
+                    {
+                        items: cartItems,
+                    }
+                )
 
                 // Cập nhật lại giá và discount trong giỏ hàng của người dùng trong MongoDB
                 await CartModel.findByIdAndUpdate(cart[0]._id, {
@@ -367,7 +371,9 @@ class OrderService {
 
         // Nếu số tiền giảm giá lớn hơn tổng tiền hàng, thì không cho phép
         if (totalAmount - discountAmount < 0) {
-            throw new BadRequestError('Mã giảm giá không hợp lệ, số tiền giảm giá vượt quá tổng tiền hàng')
+            throw new BadRequestError(
+                'Mã giảm giá không hợp lệ, số tiền giảm giá vượt quá tổng tiền hàng'
+            )
         }
 
         // Nếu số tiền giảm giá bằng số điểm thưởng lớn hơn 50% tổng tiền hàng, thì chỉ được giảm tối đa 50% tổng tiền hàng
@@ -583,10 +589,10 @@ class OrderService {
             ...{
                 ...orderWithoutId,
                 items: orderWithoutId.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         })
     }
 
@@ -603,7 +609,7 @@ class OrderService {
         let total: any
         let response: any[] = []
         try {
-            ; ({ total, response } = await elasticsearchService.searchDocuments(
+            ;({ total, response } = await elasticsearchService.searchDocuments(
                 'orders',
                 {
                     from,
@@ -650,9 +656,8 @@ class OrderService {
     // Lấy chi tiết đơn hàng theo order_id (USER)
     async getOrderById(order_id: string, user_id: string) {
         // Tìm kiếm đơn hàng trong Elasticsearch
-        const { total, response }: { total: any; response: any } = await elasticsearchService.searchDocuments(
-            'orders',
-            {
+        const { total, response }: { total: any; response: any } =
+            await elasticsearchService.searchDocuments('orders', {
                 query: {
                     bool: {
                         must: {
@@ -664,11 +669,10 @@ class OrderService {
                             term: {
                                 user_id: user_id,
                             },
-                        }
-                    }
+                        },
+                    },
                 },
-            }
-        )
+            })
 
         // Kiểm tra nếu không tìm thấy đơn hàng
         if (total === 0) {
@@ -680,10 +684,10 @@ class OrderService {
             ...{
                 ...response[0]._source,
                 items: response[0]._source.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         }
         return new OkResponse('Get order successfully', order)
     }
@@ -691,16 +695,14 @@ class OrderService {
     // Lấy chi tiết đơn hàng theo order_id (ADMIN)
     async getOrderByIdAdmin(order_id: string) {
         // Tìm kiếm đơn hàng trong Elasticsearch
-        const { total, response }: { total: any; response: any } = await elasticsearchService.searchDocuments(
-            'orders',
-            {
+        const { total, response }: { total: any; response: any } =
+            await elasticsearchService.searchDocuments('orders', {
                 query: {
                     term: {
                         _id: order_id,
                     },
                 },
-            }
-        )
+            })
 
         // Kiểm tra nếu không tìm thấy đơn hàng
         if (total === 0) {
@@ -729,7 +731,7 @@ class OrderService {
         let total: any
         let response: any[] = []
         try {
-            ; ({ total, response } = await elasticsearchService.searchDocuments(
+            ;({ total, response } = await elasticsearchService.searchDocuments(
                 'orders',
                 {
                     from,
@@ -760,10 +762,10 @@ class OrderService {
             ...{
                 ...hit._source,
                 items: hit._source.items.map((item: any) => {
-                    const { original_price, ...rest } = item;
-                    return rest;
-                })
-            }
+                    const { original_price, ...rest } = item
+                    return rest
+                }),
+            },
         }))
 
         return new OkResponse('Get orders successfully', orders)
