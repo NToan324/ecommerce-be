@@ -24,7 +24,6 @@ const productVariantSchema = new Schema(
         attributes: {
             type: Map,
             of: String,
-            required: true,
         },
         variant_description: {
             type: String,

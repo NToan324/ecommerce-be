@@ -54,6 +54,7 @@ class CartService {
 
         const { total: totalCart, response: cart } = cartResponse
 
+
         if (totalCart === 0) {
             //If cart not exist, create new cart
             const newCart = await CartModel.create({
@@ -77,6 +78,7 @@ class CartService {
             }
 
             const { _id, ...cartWithoutId } = newCart.toJSON()
+
 
             // Index the new cart in Elasticsearch
             await elasticsearchService.indexDocument(
@@ -134,6 +136,7 @@ class CartService {
             }
 
             const { _id, ...cartWithoutId } = updatedCart.toJSON()
+
 
             // Update the cart in Elasticsearch
             await elasticsearchService.indexDocument(

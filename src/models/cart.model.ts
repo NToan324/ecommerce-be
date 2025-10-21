@@ -16,6 +16,10 @@ const cartSchema = new Schema(
                     type: String,
                     required: true,
                 },
+                attributes: {
+                    type: Map,
+                    of: String,
+                },
                 quantity: {
                     type: Number,
                     required: true,
