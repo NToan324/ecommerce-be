@@ -4,6 +4,9 @@ import emailService from '../services/sendEmail.service'
 console.log('Mail worker started')
 mailQueue.process(async (job) => {
     const { type } = job.data
+
+    console.log(`Processing job of type: ${type}`)
+
     if (type === 'order_confirmation') {
         const { email, orderDetails } = job.data
         await emailService.sendEmailOrderConfirmation({ email, orderDetails })
