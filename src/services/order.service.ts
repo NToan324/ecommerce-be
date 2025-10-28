@@ -467,25 +467,36 @@ class OrderService {
 
         // Cập nhật lại số lượng sản phẩm trong Elasticsearch
         for (const item of cartItems) {
-            await elasticsearchService.updateDocument(
-                'product_variants',
-                item.product_variant_id,
-                {
-                    quantity:
-                        productMap.get(item.product_variant_id).quantity -
-                        item.quantity,
-                }
-            )
 
-            // Cập nhật lại số lượng sản phẩm trong MongoDB
-            await ProductVariantModel.findByIdAndUpdate(
-                item.product_variant_id,
+            // Cập nhật số lượng sản phẩm trong MongoDB
+            const updatedProductVariant = await ProductVariantModel.findByIdAndUpdate(
                 {
-                    quantity:
-                        productMap.get(item.product_variant_id).quantity -
-                        item.quantity,
-                }
-            )
+                    _id: item.product_variant_id,
+                    quantity: { $gte: item.quantity }, // Đảm bảo còn đủ hàng
+                },
+                {
+                    $inc: { quantity: -item.quantity },
+                },
+                { new: true }
+            );
+
+            // Nếu không cập nhật được (không đủ hàng), rollback toàn bộ đơn hàng
+            if (!updatedProductVariant) {
+                await OrderModel.findByIdAndDelete(order._id);
+                await elasticsearchService.deleteDocument('orders', order._id.toString());
+                throw new BadRequestError(
+                    `Product ${item.product_variant_name} does not have enough stock`
+                );
+            }
+
+            const { _id, ...productVariantWithoutId } = updatedProductVariant.toJSON();
+            
+            // Cập nhật số lượng sản phẩm trong Elasticsearch
+            await elasticsearchService.indexDocument(
+                'product_variants',
+                updatedProductVariant._id.toString(),
+                productVariantWithoutId
+            );
         }
 
         // Xóa giỏ hàng của người dùng trong Elasticsearch và MongoDB
@@ -496,15 +507,25 @@ class OrderService {
 
         // Cập nhật lại số điểm thưởng cho người dùng
         if (user_id) {
-            await UserModel.findByIdAndUpdate(user_id, {
-                loyalty_points:
-                    loyalty_points_earned + loyalty_points_remaining,
-            })
+            const updatedUser = await UserModel.findByIdAndUpdate(
+                user_id,
+                {
+                    $set: {
+                        loyalty_points: loyalty_points_remaining + loyalty_points_earned,
+                    },
+                },
+                { new: true }
+            )
 
-            await elasticsearchService.updateDocument('users', user_id, {
-                loyalty_points:
-                    loyalty_points_earned + loyalty_points_remaining,
-            })
+            if (updatedUser) {
+                const { _id, ...userWithoutId } = updatedUser.toObject()
+                // Cập nhật lại số điểm thưởng trong Elasticsearch
+                await elasticsearchService.updateDocument(
+                    'users',
+                    _id.toString(),
+                    userWithoutId
+                )
+            }
         }
 
         // Cập nhật lại số lần sử dụng mã giảm giá
@@ -754,18 +775,9 @@ class OrderService {
             throw new BadRequestError('Invalid status')
         }
 
-        // Tìm kiếm đơn hàng trong Elasticsearch
-        let order: Order
-        try {
-            order = (await elasticsearchService.getDocumentById(
-                'orders',
-                order_id
-            )) as Order
-        } catch (error: any) {
-            if (error.statusCode === 404) {
-                throw new BadRequestError('Order not found')
-            }
-            throw new BadRequestError('Error searching order')
+        const order = await OrderModel.findById(order_id)
+        if (!order) {
+            throw new BadRequestError('Order not found')
         }
 
         // Cập nhật trạng thái thanh toán nếu cần
@@ -774,27 +786,21 @@ class OrderService {
             updatedPaymentStatus = 'PAID'
         }
 
-        // Thêm trạng thái mới vào order_tracking
-        order.order_tracking.push({
-            status,
-            updated_at: new Date(),
-        })
-
-        // Cập nhật trạng thái hiện tại và trạng thái thanh toán
-        order.status = status as
-            | 'PENDING'
-            | 'SHIPPING'
-            | 'DELIVERED'
-            | 'CANCELLED'
-        order.payment_status = updatedPaymentStatus
-
-        // Lưu thay đổi vào MongoDB
         const updatedOrder = await OrderModel.findByIdAndUpdate(
             order_id,
-            order,
             {
-                new: true,
-            }
+                $set: {
+                    status: status as 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED',
+                    payment_status: updatedPaymentStatus,
+                },
+                $push: {
+                    order_tracking: {
+                        status,
+                        updated_at: new Date(),
+                    },
+                },
+            },
+            { new: true }
         )
 
         if (!updatedOrder) {
@@ -804,11 +810,7 @@ class OrderService {
         const { _id, ...orderWithoutId } = updatedOrder.toJSON()
 
         // Cập nhật dữ liệu trên Elasticsearch
-        await elasticsearchService.updateDocument('orders', order_id, {
-            status,
-            payment_status: updatedPaymentStatus,
-            order_tracking: order.order_tracking,
-        })
+        await elasticsearchService.updateDocument('orders', _id.toString(), orderWithoutId)
 
         return new OkResponse('Order status updated successfully', {
             _id,

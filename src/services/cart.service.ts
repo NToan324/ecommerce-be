@@ -169,7 +169,7 @@ class CartService {
         productVariantId: string
         quantity: number
     }) {
-        // 1. Lấy thông tin sản phẩm từ ES (Đây là thao tác đọc, vẫn ổn)
+        // Lấy thông tin sản phẩm từ ES để kiểm tra
         const { total, response } = await elasticsearchService.searchDocuments(
             'product_variants',
             {
@@ -189,7 +189,7 @@ class CartService {
         const productVariant: ProductVariant = response[0]
             ._source as ProductVariant
 
-        // 2. THAO TÁC ATOMIC 1: Thử tìm và tăng số lượng item đã có
+        // Tìm và cập nhật giỏ hàng trong MongoDB
         const updatedCart = await CartModel.findOneAndUpdate(
             {
                 user_id: userId,
@@ -203,11 +203,11 @@ class CartService {
                 arrayFilters: [{ 'elem.product_variant_id': productVariantId }],
                 new: true, // Trả về tài liệu đã được cập nhật
             }
-        ).lean() // Dùng .lean() để có kết quả nhanh hơn
+        )
 
-        // 3. Nếu thành công (updatedCart có giá trị) -> Item đã có và được cập nhật
+        // Cập nhật thành công
         if (updatedCart) {
-            const { _id, ...cartWithoutId } = updatedCart
+            const { _id, ...cartWithoutId } = updatedCart.toJSON()
 
             // Đồng bộ kết quả đúng từ Mongo lên ES
             await elasticsearchService.indexDocument(
@@ -228,8 +228,8 @@ class CartService {
             })
         }
 
-        // 4. THAO TÁC ATOMIC 2: Nếu Thao tác 1 thất bại (null)
-        // -> Item chưa có, hoặc giỏ hàng chưa có.
+        
+        // Item chưa có, hoặc giỏ hàng chưa có.
         // Tạo đối tượng item mới
         const newItem = {
             product_variant_id: productVariantId,
@@ -256,14 +256,13 @@ class CartService {
                 upsert: true, // Tạo mới nếu không tìm thấy
                 new: true, // Trả về tài liệu mới/đã cập nhật
             }
-        ).lean()
+        )
 
         if (!newOrUpdatedCart) {
-            // Trường hợp này gần như không thể xảy ra nếu MongoDB hoạt động
             throw new BadRequestError('Failed to create or update cart')
         }
 
-        const { _id, ...cartWithoutId } = newOrUpdatedCart
+        const { _id, ...cartWithoutId } = newOrUpdatedCart.toJSON()
 
         // Đồng bộ kết quả đúng từ Mongo lên ES
         await elasticsearchService.indexDocument(
@@ -272,7 +271,6 @@ class CartService {
             cartWithoutId
         )
 
-        // Trả về response (nên dùng CreatedResponse nếu có thể kiểm tra là cart mới)
         return new CreatedResponse('Item added to cart successfully', {
             _id: _id,
             ...{
@@ -421,7 +419,7 @@ class CartService {
         productVariantId: string
         quantity: number
     }) {
-        // 1. (Không bắt buộc) Bạn vẫn có thể dùng ES để kiểm tra sản phẩm
+        // Kiểm tra sản phẩm có tồn tại và đang hoạt động không
         const { total } = await elasticsearchService.searchDocuments(
             'product_variants',
             {
@@ -438,9 +436,7 @@ class CartService {
             throw new BadRequestError('Product variant not found')
         }
 
-        // 2. TÌM VÀ CẬP NHẬT TRỰC TIẾP TRÊN MONGO (Atomic)
-        // Đây là thay đổi quan trọng: Không đọc từ ES, không đọc từ Mongo trước.
-        // Chúng ta ra lệnh cho Mongo tự tìm và cập nhật 1 trường duy nhất.
+        // Cập nhật số lượng trong MongoDB
         const updatedCart = await CartModel.findOneAndUpdate(
             {
                 user_id: userId, // Tìm giỏ hàng của user
@@ -455,9 +451,8 @@ class CartService {
                 arrayFilters: [{ 'elem.product_variant_id': productVariantId }],
                 new: true, // Yêu cầu trả về tài liệu sau khi đã cập nhật
             }
-        ).lean() // .lean() để lấy object JS thuần túy, không phải Mongoose document
+        )
 
-        // 3. KIỂM TRA KẾT QUẢ
         if (!updatedCart) {
             // Nếu không tìm thấy (do sai userId hoặc sai productVariantId trong giỏ)
             // Kiểm tra xem giỏ hàng có tồn tại không
@@ -469,17 +464,16 @@ class CartService {
             throw new BadRequestError('Item not found in cart')
         }
 
-        // 4. ĐỒNG BỘ KẾT QUẢ MỚI NHẤT TỪ MONGO SANG ELASTICSEARCH
-        const { _id, ...cartWithoutId } = updatedCart
+        
+        const { _id, ...cartWithoutId } = updatedCart.toJSON()
 
-        // Chúng ta vẫn index lên ES, nhưng là index dữ liệu ĐÚNG từ Mongo
+        // Dồng bộ kết quả đúng từ Mongo lên ES
         await elasticsearchService.indexDocument(
             'carts',
             _id.toString(),
             cartWithoutId
         )
 
-        // 5. TRẢ VỀ KẾT QUẢ
         return new OkResponse('Item quantity updated successfully', {
             _id: _id,
             ...{
@@ -500,41 +494,22 @@ class CartService {
         userId: string
         productVariantId: string
     }) {
-        let cartResponse = await elasticsearchService.searchDocuments('carts', {
-            query: {
-                term: {
-                    user_id: userId,
-                },
+        
+        // Remove item from MongoDB
+        const updatedCart = await CartModel.findOneAndUpdate(
+            {
+                user_id: userId,
             },
-        })
-
-        const { total: totalCart, response: cart } = cartResponse
-
-        if (!cart || cart.length === 0) {
-            throw new BadRequestError('Cart not found')
-        }
-
-        const cartId = cart[0]?._id?.toString()
-        const cartSource = cart[0]._source as {
-            items: {
-                product_variant_id: string
-                quantity: number
-                unit_price: number
-            }[]
-        }
-
-        const updatedItems = cartSource.items.filter(
-            (item) => item.product_variant_id.toString() !== productVariantId
-        )
-
-        const updatedCart = await CartModel.findByIdAndUpdate(
-            cartId,
-            { items: updatedItems },
-            { new: true }
+            {
+                $pull: { items: { product_variant_id: productVariantId } },
+            },
+            {
+                new: true,
+            }
         )
 
         if (!updatedCart) {
-            throw new BadRequestError('Failed to update cart')
+            throw new BadRequestError('Cart not found')
         }
 
         const { _id, ...cartWithoutId } = updatedCart.toJSON()
@@ -560,29 +535,10 @@ class CartService {
 
     // Clear cart
     async clearCart(userId: string) {
-        const cartResponse = await elasticsearchService.searchDocuments(
-            'carts',
-            {
-                query: {
-                    term: {
-                        user_id: userId,
-                    },
-                },
-            }
-        )
-
-        const { total: totalCart, response: cart } = cartResponse
-
-        if (totalCart === 0) {
-            throw new BadRequestError('Cart not found')
-        }
-
-        const cartId = cart[0]?._id?.toString()
-
-        const deletedCart = await CartModel.findByIdAndDelete(cartId)
+        const deletedCart = await CartModel.findOneAndDelete({ user_id: userId })
 
         if (!deletedCart) {
-            throw new BadRequestError('Failed to clear cart')
+            throw new BadRequestError('Cart not found')
         }
 
         // Delete the cart from Elasticsearch
