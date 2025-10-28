@@ -3,11 +3,12 @@ import { CreatedResponse, OkResponse } from '@/core/success.response'
 import { BadRequestError } from '@/core/error.response'
 import elasticsearchService from '@/services/elasticsearch.service'
 import CartModel from '@/models/cart.model'
-import UserModel from '@/models/user.model'
+import UserModel, { User } from '@/models/user.model'
 import authService from './auth.service'
 import ProductVariantModel from '@/models/productVariant.model'
 import { mailQueue } from '@/queue/mail.queue'
 import CouponModel, { Coupon } from '@/models/coupon.model'
+import { unknown } from 'zod/v4'
 
 class OrderService {
     // Tìm kiếm đơn hàng theo các tiêu chí
@@ -347,7 +348,7 @@ class OrderService {
         if (user_id && using_loyalty_points) {
             const user = await UserModel.findById(user_id)
 
-            currentLoyaltyPoints = (user?.loyalty_points as number) || 0.0
+            currentLoyaltyPoints = ((user?.loyalty_points || 0.0) as unknown as number)
         }
 
         // Tính tổng tiền
@@ -410,7 +411,8 @@ class OrderService {
                         email,
                         fullName: user_name,
                         password: randomPassword,
-                    })
+                        address: [address],
+                    } as Partial<User>)
 
                     user_id = newUser.id.toString()
 
