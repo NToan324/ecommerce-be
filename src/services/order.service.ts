@@ -475,36 +475,40 @@ class OrderService {
 
         // Cập nhật lại số lượng sản phẩm trong Elasticsearch
         for (const item of cartItems) {
-
             // Cập nhật số lượng sản phẩm trong MongoDB
-            const updatedProductVariant = await ProductVariantModel.findByIdAndUpdate(
-                {
-                    _id: item.product_variant_id,
-                    quantity: { $gte: item.quantity }, // Đảm bảo còn đủ hàng
-                },
-                {
-                    $inc: { quantity: -item.quantity },
-                },
-                { new: true }
-            );
+            const updatedProductVariant =
+                await ProductVariantModel.findByIdAndUpdate(
+                    {
+                        _id: item.product_variant_id,
+                        quantity: { $gte: item.quantity }, // Đảm bảo còn đủ hàng
+                    },
+                    {
+                        $inc: { quantity: -item.quantity },
+                    },
+                    { new: true }
+                )
 
             // Nếu không cập nhật được (không đủ hàng), rollback toàn bộ đơn hàng
             if (!updatedProductVariant) {
-                await OrderModel.findByIdAndDelete(order._id);
-                await elasticsearchService.deleteDocument('orders', order._id.toString());
+                await OrderModel.findByIdAndDelete(order._id)
+                await elasticsearchService.deleteDocument(
+                    'orders',
+                    order._id.toString()
+                )
                 throw new BadRequestError(
                     `Product ${item.product_variant_name} does not have enough stock`
-                );
+                )
             }
 
-            const { _id, ...productVariantWithoutId } = updatedProductVariant.toJSON();
-            
+            const { _id, ...productVariantWithoutId } =
+                updatedProductVariant.toJSON()
+
             // Cập nhật số lượng sản phẩm trong Elasticsearch
             await elasticsearchService.indexDocument(
                 'product_variants',
                 updatedProductVariant._id.toString(),
                 productVariantWithoutId
-            );
+            )
         }
 
         // Xóa giỏ hàng của người dùng trong Elasticsearch và MongoDB
@@ -519,7 +523,8 @@ class OrderService {
                 user_id,
                 {
                     $set: {
-                        loyalty_points: loyalty_points_remaining + loyalty_points_earned,
+                        loyalty_points:
+                            loyalty_points_remaining + loyalty_points_earned,
                     },
                 },
                 { new: true }
@@ -794,7 +799,11 @@ class OrderService {
             order_id,
             {
                 $set: {
-                    status: status as 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED',
+                    status: status as
+                        | 'PENDING'
+                        | 'SHIPPING'
+                        | 'DELIVERED'
+                        | 'CANCELLED',
                     payment_status: updatedPaymentStatus,
                 },
                 $push: {
@@ -814,7 +823,11 @@ class OrderService {
         const { _id, ...orderWithoutId } = updatedOrder.toJSON()
 
         // Cập nhật dữ liệu trên Elasticsearch
-        await elasticsearchService.updateDocument('orders', _id.toString(), orderWithoutId)
+        await elasticsearchService.updateDocument(
+            'orders',
+            _id.toString(),
+            orderWithoutId
+        )
 
         return new OkResponse('Order status updated successfully', {
             _id,

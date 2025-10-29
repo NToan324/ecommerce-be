@@ -87,9 +87,7 @@ class ReviewService {
     }
 
     // Cập nhật average_rating và số lượng review của product variant
-    async updateProductVariantStats(
-        productVariantId: string,
-    ) {
+    async updateProductVariantStats(productVariantId: string) {
         // Lấy tất cả các review của product variant
         const reviews = await reviewModel.find({
             product_variant_id: productVariantId,
@@ -103,18 +101,20 @@ class ReviewService {
             five_star: reviews.filter((r) => r.rating === 5).length,
         }
 
-        const reviewsWithRating : number = ratingDistribution.one_star +
+        const reviewsWithRating: number =
+            ratingDistribution.one_star +
             ratingDistribution.two_star +
             ratingDistribution.three_star +
             ratingDistribution.four_star +
             ratingDistribution.five_star
-        
-        const averageRating = (5*ratingDistribution.five_star +
-            4*ratingDistribution.four_star +
-            3*ratingDistribution.three_star +
-            2*ratingDistribution.two_star +
-            1*ratingDistribution.one_star
-            ) / (reviewsWithRating || 1)
+
+        const averageRating =
+            (5 * ratingDistribution.five_star +
+                4 * ratingDistribution.four_star +
+                3 * ratingDistribution.three_star +
+                2 * ratingDistribution.two_star +
+                1 * ratingDistribution.one_star) /
+            (reviewsWithRating || 1)
 
         // Cập nhật số lượng review và average_rating trong MongoDB
         await productVariantModel.findByIdAndUpdate(productVariantId, {
@@ -189,7 +189,7 @@ class ReviewService {
         let response: any[]
 
         try {
-            ({ total, response } = await elasticsearchService.searchDocuments(
+            ;({ total, response } = await elasticsearchService.searchDocuments(
                 'reviews',
                 {
                     size: limit,
@@ -213,26 +213,23 @@ class ReviewService {
                 }
             ))
         } catch (error: any) {
-            return new OkResponse(
-                'No reviews found for this product variant',
-                {
-                    total: 0,
-                    page: 1,
-                    limit: 10,
-                    average_rating: 0,
-                    review_count: 0,
-                    reviews_with_rating: 0,
-                    rating_distribution: {
-                        one_star: 0,
-                        two_star: 0,
-                        three_star: 0,
-                        four_star: 0,
-                        five_star: 0,
-                    },
-                    totalPage: 0,
-                    data: [],
-                }
-            )
+            return new OkResponse('No reviews found for this product variant', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                average_rating: 0,
+                review_count: 0,
+                reviews_with_rating: 0,
+                rating_distribution: {
+                    one_star: 0,
+                    two_star: 0,
+                    three_star: 0,
+                    four_star: 0,
+                    five_star: 0,
+                },
+                totalPage: 0,
+                data: [],
+            })
         }
 
         const reviews = response.map((review: any) => {
