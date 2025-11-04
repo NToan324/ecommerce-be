@@ -20,6 +20,14 @@ router.get(
 // Xem danh sách đơn hàng của bản thân (USER)
 router.get('/orders', verifyJWT, asyncHandler(userController.getOrders))
 
+// Search đơn hàng của bản thân (USER)
+router.get(
+    '/orders/search',
+    verifyJWT,
+    validationRequest(UserValidation.searchOrders()),
+    asyncHandler(userController.searchOrders)
+)
+
 // Lấy hồ sơ người dùng
 router.get('/profile', verifyJWT, asyncHandler(userController.getUserProfile))
 

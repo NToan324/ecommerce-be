@@ -58,6 +58,25 @@ export class UserValidation {
             }).strict('Invalid field'),
         };
     }
+
+    static searchOrders() {
+        return {
+            query: z.object({
+                query: z.string().nonempty('Query can\'t be empty'),
+                page: z.coerce
+                    .number()
+                    .int('Page must be an integer')
+                    .min(1, 'Page must be greater than or equal to 1')
+                    .optional(),
+                limit: z.coerce
+                    .number()
+                    .int('Limit must be an integer')
+                    .min(1, 'Limit must be greater than or equal to 1')
+                    .max(100, 'Limit must be less than or equal to 100')
+                    .optional(),
+            }).strict('Invalid field'),
+        };
+    }
 }
 
 export default UserValidation;

@@ -182,6 +182,28 @@ class UserController {
         const uploaded = await UploadService.uploadMultiImages(files)
         res.send(uploaded)
     }
+
+    // Tìm kiếm đơn hàng của bản thân
+    async searchOrders(req: Request, res: Response) {
+        const { id } = req.user as { id: string }
+        const { query } = req.query as { query: string }
+
+        const { page = '1', limit = '10' } = req.query as {
+            page?: string
+            limit?: string
+        }
+
+        const pageNumber = parseInt(page, 10)
+        const limitNumber = parseInt(limit, 10)
+        res.send(
+            await orderService.searchOrdersByOrderIdOrItemName({
+                user_id: id,
+                query,
+                page: pageNumber,
+                limit: limitNumber,
+            })
+        )
+    }
 }
 
 export default new UserController()

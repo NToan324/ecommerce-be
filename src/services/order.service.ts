@@ -11,150 +11,7 @@ import CouponModel, { Coupon } from '@/models/coupon.model'
 import { unknown } from 'zod/v4'
 
 class OrderService {
-    // Tìm kiếm đơn hàng theo các tiêu chí
-    async searchOrder({
-        customer_name,
-        order_id,
-        status,
-        payment_status,
-        payment_method,
-        from_date,
-        to_date,
-        page = 1,
-        limit = 10,
-    }: {
-        customer_name?: string
-        order_id?: string
-        status?: string
-        payment_status?: string
-        payment_method?: string
-        from_date?: string
-        to_date?: string
-        page?: number
-        limit?: number
-    }) {
-        const must: any[] = []
-
-        // Tìm kiếm theo tên khách hàng
-        if (customer_name) {
-            must.push({
-                wildcard: {
-                    'user_name.keyword': {
-                        value: `*${customer_name}*`,
-                        case_insensitive: true,
-                    },
-                },
-            })
-        }
-
-        // Tìm kiếm theo order_id
-        if (order_id) {
-            must.push({
-                term: {
-                    _id: order_id,
-                },
-            })
-        }
-
-        // Tìm kiếm theo trạng thái đơn hàng
-        if (status) {
-            must.push({
-                term: {
-                    status: status,
-                },
-            })
-        }
-
-        // Tìm kiếm theo trạng thái thanh toán
-        if (payment_status) {
-            must.push({
-                term: {
-                    payment_status: payment_status,
-                },
-            })
-        }
-
-        // Tìm kiếm theo phương thức thanh toán
-        if (payment_method) {
-            must.push({
-                term: {
-                    payment_method: payment_method,
-                },
-            })
-        }
-
-        // Lọc theo khoảng thời gian
-        if (from_date || to_date) {
-            const from = from_date ? new Date(from_date) : undefined
-            const to = to_date ? new Date(to_date) : undefined
-
-            const fromISO = from ? from.toISOString() : undefined
-            const toISO = to ? to.toISOString() : undefined
-
-            must.push({
-                range: {
-                    createdAt: {
-                        ...(from_date && { gte: fromISO }),
-                        ...(to_date && { lte: toISO }),
-                    },
-                },
-            })
-        }
-
-        const from = (page - 1) * limit
-
-        // Cấu hình query Elasticsearch
-        const query: any = {
-            from,
-            size: limit,
-            query: {
-                bool: {
-                    must,
-                },
-            },
-            sort: [
-                {
-                    createdAt: {
-                        order: 'desc', // Sắp xếp theo thời gian tạo (mới nhất trước)
-                    },
-                },
-            ],
-        }
-
-        // Thực hiện tìm kiếm trong Elasticsearch
-        const { total, response } = await elasticsearchService.searchDocuments(
-            'orders',
-            query
-        )
-
-        if (total === 0) {
-            return new OkResponse('No order found', {
-                total: 0,
-                page: 1,
-                limit: 10,
-                totalPage: 0,
-                data: [],
-            })
-        }
-
-        // Xử lý kết quả trả về
-        const orders = response.map((hit: any) => ({
-            _id: hit._id,
-            ...hit._source,
-        }))
-
-        const pageNumber = parseInt(page.toString(), 10)
-        const limitNumber = parseInt(limit.toString(), 10)
-
-        return {
-            total,
-            page: pageNumber,
-            limit: limitNumber,
-            totalPages: Math.ceil((total ?? 0) / limit),
-            data: orders,
-        }
-    }
-
+    // Tạo đơn hàng
     async createOrder({
         user_id,
         user_name,
@@ -834,6 +691,249 @@ class OrderService {
             ...orderWithoutId,
         })
     }
+
+    // Tìm kiếm đơn hàng theo các tiêu chí
+    async searchOrder({
+        customer_name,
+        order_id,
+        status,
+        payment_status,
+        payment_method,
+        from_date,
+        to_date,
+        page = 1,
+        limit = 10,
+    }: {
+        customer_name?: string
+        order_id?: string
+        status?: string
+        payment_status?: string
+        payment_method?: string
+        from_date?: string
+        to_date?: string
+        page?: number
+        limit?: number
+    }) {
+        const must: any[] = []
+
+        // Tìm kiếm theo tên khách hàng
+        if (customer_name) {
+            must.push({
+                wildcard: {
+                    'user_name.keyword': {
+                        value: `*${customer_name}*`,
+                        case_insensitive: true,
+                    },
+                },
+            })
+        }
+
+        // Tìm kiếm theo order_id
+        if (order_id) {
+            must.push({
+                term: {
+                    _id: order_id,
+                },
+            })
+        }
+
+        // Tìm kiếm theo trạng thái đơn hàng
+        if (status) {
+            must.push({
+                term: {
+                    status: status,
+                },
+            })
+        }
+
+        // Tìm kiếm theo trạng thái thanh toán
+        if (payment_status) {
+            must.push({
+                term: {
+                    payment_status: payment_status,
+                },
+            })
+        }
+
+        // Tìm kiếm theo phương thức thanh toán
+        if (payment_method) {
+            must.push({
+                term: {
+                    payment_method: payment_method,
+                },
+            })
+        }
+
+        // Lọc theo khoảng thời gian
+        if (from_date || to_date) {
+            const from = from_date ? new Date(from_date) : undefined
+            const to = to_date ? new Date(to_date) : undefined
+
+            const fromISO = from ? from.toISOString() : undefined
+            const toISO = to ? to.toISOString() : undefined
+
+            must.push({
+                range: {
+                    createdAt: {
+                        ...(from_date && { gte: fromISO }),
+                        ...(to_date && { lte: toISO }),
+                    },
+                },
+            })
+        }
+
+        const from = (page - 1) * limit
+
+        // Cấu hình query Elasticsearch
+        const query: any = {
+            from,
+            size: limit,
+            query: {
+                bool: {
+                    must,
+                },
+            },
+            sort: [
+                {
+                    createdAt: {
+                        order: 'desc', // Sắp xếp theo thời gian tạo (mới nhất trước)
+                    },
+                },
+            ],
+        }
+
+        // Thực hiện tìm kiếm trong Elasticsearch
+        const { total, response } = await elasticsearchService.searchDocuments(
+            'orders',
+            query
+        )
+
+        if (total === 0) {
+            return new OkResponse('No order found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
+        }
+
+        // Xử lý kết quả trả về
+        const orders = response.map((hit: any) => ({
+            _id: hit._id,
+            ...hit._source,
+        }))
+
+        const pageNumber = parseInt(page.toString(), 10)
+        const limitNumber = parseInt(limit.toString(), 10)
+
+        return {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil((total ?? 0) / limit),
+            data: orders,
+        }
+    }
+
+    async searchOrdersByOrderIdOrItemName({
+        user_id,
+        query,
+        page = 1,
+        limit = 10,
+    }: {
+        user_id: string
+        query: string
+        page?: number
+        limit?: number
+    }) {
+        const must: any[] = [
+            {
+                term: {
+                    user_id: user_id,
+                },
+            },  
+        ]
+
+        console.log('Search query:', query)
+
+        if (query && query.trim() !== '') {
+            const should: any[] = [
+                {
+                    term: {
+                        _id: query,
+                    },
+                },
+                {
+                    match: {
+                        'items.product_variant_name': {
+                            query: query,
+                            operator: 'and',
+                        },
+                    }
+                },
+            ]
+
+            must.push({
+                bool: {
+                    should: should,
+                    minimum_should_match: 1,
+                }
+            })
+        }
+
+        const from = (page - 1) * limit
+
+        // Cấu hình query Elasticsearch
+        const queryBody: any = {
+            from,
+            size: limit,
+            query: {
+                bool: {
+                    must,
+                }
+            },
+            sort: [
+                {
+                    createdAt: {
+                        order: 'desc', // Sắp xếp theo thời gian tạo (mới nhất trước)
+                    },
+                },
+            ],
+        }
+
+        const { total, response } = await elasticsearchService.searchDocuments(
+            'orders',
+            queryBody
+        )
+
+        if (total === 0) {
+            return new OkResponse('No order found', {
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPage: 0,
+                data: [],
+            })
+        }
+
+        const orders = response.map((hit: any) => ({
+            _id: hit._id,
+            ...hit._source,
+        }))
+
+        const pageNumber = parseInt(page.toString(), 10)
+        const limitNumber = parseInt(limit.toString(), 10)
+
+        return new OkResponse('Get orders successfully', {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil((total ?? 0) / limit),
+            data: orders,
+        })
+    }
+
 }
 
 const orderService = new OrderService()
