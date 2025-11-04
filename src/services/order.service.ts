@@ -615,7 +615,11 @@ class OrderService {
             ))
         } catch (error: any) {
             return new OkResponse('No orders found', {
-                orders: [],
+                total: 0,
+                page: 1,
+                limit: 10,
+                totalPages: 0,
+                data: [],
             })
         }
 
@@ -631,7 +635,16 @@ class OrderService {
             },
         }))
 
-        return new OkResponse('Get orders successfully', orders)
+        const pageNumber = parseInt(page.toString(), 10)
+        const limitNumber = parseInt(limit.toString(), 10)
+
+        return new OkResponse('Get orders successfully', {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil((total ?? 0) / limit),
+            data: orders,
+        })
     }
 
     async updateOrderStatus(order_id: string, status: string) {
