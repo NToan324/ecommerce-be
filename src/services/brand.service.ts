@@ -3,6 +3,7 @@ import { CreatedResponse, OkResponse } from '@/core/success.response'
 import { convertToObjectId } from '@/helpers/convertObjectId'
 import brandModel, { Brand } from '@/models/brand.model'
 import elasticsearchService from './elasticsearch.service'
+import { match } from 'node:assert'
 
 class BrandService {
     async createBrand(payload: Partial<Brand>) {
@@ -238,10 +239,10 @@ class BrandService {
                     bool: {
                         must: [
                             {
-                                wildcard: {
+                                match: {
                                     'brand_name.keyword': {
-                                        value: `*${name}*`,
-                                        case_insensitive: true,
+                                        query: name,
+                                        operator: 'and',
                                     },
                                 },
                             },

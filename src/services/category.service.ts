@@ -244,10 +244,10 @@ class CategoryService {
                     bool: {
                         must: [
                             {
-                                wildcard: {
+                                match: {
                                     'category_name.keyword': {
-                                        value: `*${name}*`,
-                                        case_insensitive: true,
+                                        query: name,
+                                        operator: 'and',
                                     },
                                 },
                             },

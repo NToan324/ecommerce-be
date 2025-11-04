@@ -320,10 +320,10 @@ class ProductService {
         // Add filters dynamically based on the provided parameters
         if (name) {
             must.push({
-                wildcard: {
-                    'product_name.keyword': {
-                        value: `*${name}*`,
-                        case_insensitive: true,
+                match: {
+                    'product_name': {
+                        query: name,
+                        operator: 'and',
                     },
                 },
             })
@@ -1059,10 +1059,10 @@ class ProductService {
         // Tìm kiếm theo tên
         if (name) {
             must.push({
-                wildcard: {
-                    'variant_name.keyword': {
-                        value: `*${name}*`,
-                        case_insensitive: true,
+                match: {
+                    'variant_name': {
+                        query: name,
+                        operator: 'and',
                     },
                 },
             })
@@ -1214,10 +1214,10 @@ class ProductService {
         // Tìm kiếm theo tên
         if (name) {
             must.push({
-                wildcard: {
-                    'variant_name.keyword': {
-                        value: `*${name}*`,
-                        case_insensitive: true,
+                match: {
+                    'variant_name': {
+                        query: name,
+                        operator: 'and',
                     },
                 },
             })

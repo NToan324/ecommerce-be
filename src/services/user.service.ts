@@ -185,10 +185,10 @@ class UserService {
 
         if (name) {
             must.push({
-                wildcard: {
+                match: {
                     'fullName.keyword': {
-                        value: `*${name}*`,
-                        case_insensitive: true,
+                        query: name,
+                        operator: 'and',
                     },
                 },
             })

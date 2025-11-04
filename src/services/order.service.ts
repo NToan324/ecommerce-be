@@ -9,6 +9,7 @@ import ProductVariantModel from '@/models/productVariant.model'
 import { mailQueue } from '@/queue/mail.queue'
 import CouponModel, { Coupon } from '@/models/coupon.model'
 import { unknown } from 'zod/v4'
+import { match } from 'node:assert'
 
 class OrderService {
     // Tạo đơn hàng
@@ -719,10 +720,10 @@ class OrderService {
         // Tìm kiếm theo tên khách hàng
         if (customer_name) {
             must.push({
-                wildcard: {
-                    'user_name.keyword': {
-                        value: `*${customer_name}*`,
-                        case_insensitive: true,
+                match: {
+                    'user_name': {
+                        query: customer_name,
+                        operator: 'and',
                     },
                 },
             })
