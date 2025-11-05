@@ -240,7 +240,7 @@ class BrandService {
                         must: [
                             {
                                 match: {
-                                    'brand_name.keyword': {
+                                    'brand_name': {
                                         query: name,
                                         operator: 'and',
                                     },

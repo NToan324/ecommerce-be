@@ -245,7 +245,7 @@ class CategoryService {
                         must: [
                             {
                                 match: {
-                                    'category_name.keyword': {
+                                    'category_name': {
                                         query: name,
                                         operator: 'and',
                                     },
