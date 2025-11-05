@@ -11,6 +11,7 @@ import { syncElasticsearch } from '@/helpers/syncElasticsearch'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import websocketRoutes from '@/routers/websocket.router'
+import initializeAdminUser from '@/config/initial_admin'
 
 dotEnv.config()
 
@@ -47,6 +48,11 @@ app.use(cookieParser())
 
 //connect database
 connectDB()
+
+// initialize admin user
+initializeAdminUser().catch((error) => {
+    console.error('Error initializing admin user:', error)
+})
 
 //sync elasticsearch
 syncElasticsearch().catch((error) => {
