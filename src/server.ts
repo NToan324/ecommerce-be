@@ -1,18 +1,15 @@
 import 'module-alias/register'
 import express from 'express'
 import cors from 'cors'
-import connectDB from '@/config/mongodb'
 import router from '@/routers/index'
 import errorHandler from '@/middleware/errorHandler'
 import bodyParser from 'body-parser'
 import dotEnv from 'dotenv'
 import cookieParser from 'cookie-parser'
-import { syncElasticsearch } from '@/helpers/syncElasticsearch'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import websocketRoutes from '@/routers/websocket.router'
-import initializeAdminUser from '@/config/initial_admin'
-
+import startServer from './config/start_server'
 dotEnv.config()
 
 const app = express()
@@ -46,17 +43,9 @@ app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 
-//connect database
-connectDB()
-
-// initialize admin user
-initializeAdminUser().catch((error) => {
-    console.error('Error initializing admin user:', error)
-})
-
-//sync elasticsearch
-syncElasticsearch().catch((error) => {
-    console.error('Error syncing Elasticsearch:', error)
+// Start the server: connect database, initialize admin user, sync elasticsearch
+startServer().catch((error) => {
+    console.error('Error during server startup:', error)
 })
 
 // import routes
