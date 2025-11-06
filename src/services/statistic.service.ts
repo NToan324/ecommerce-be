@@ -33,37 +33,86 @@ class StatisticService {
         });
 
         // Tổng doanh thu
-        const totalRevenueAgg = await elasticsearchService.searchAggregations('orders', {
+        const overviewAgg = await elasticsearchService.searchAggregations('orders', {
             size: 0,
-            query: {
-                bool: {
-                    filter: [
-                        {
-                            range: {
-                                createdAt: {
-                                    gte: 'now-30d/d',
-                                    lte: 'now/d',
-                                },
-                            },
-                        },
-                    ],
-                },
-            },
             aggs: {
                 totalRevenue: {
                     sum: {
                         field: 'total_amount',
                     },
                 },
+                totalProfit: {
+                    sum: {
+                        script: {
+                            source: `
+                                        double profit = 0;
+                                        for (item in params._source.items) {
+                                            profit += (item.unit_price - item.original_price) * item.quantity;
+                                        }
+                                        return profit;
+                                    `
+                        }
+                    }
+                },
+                all_items: {
+                    nested: {
+                        path: "items"
+                    },
+                    aggs: {
+                        top_products: {
+                            terms: {
+                                field: "items.product_variant_id",
+                                size: 5,
+                                order: {
+                                    total_quantity: "desc"
+                                }
+                            },
+                            aggs: {
+                                // 3. Tính tổng số lượng cho mỗi nhóm sản phẩm
+                                total_quantity: {
+                                    sum: {
+                                        field: "items.quantity"
+                                    }
+                                },
+                                // (Tùy chọn) Lấy tên sản phẩm từ một bản ghi
+                                product_details: {
+                                    top_hits: {
+                                        size: 1,
+                                        _source: {
+                                            includes: ["items.product_variant_name"]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             },
         });
-        const totalRevenue = (totalRevenueAgg?.aggregations?.totalRevenue as { value?: number })?.value || 0;
+        const totalRevenue = (overviewAgg?.aggregations?.totalRevenue as { value?: number })?.value || 0;
+        const totalProfit = (overviewAgg?.aggregations?.totalProfit as { value?: number })?.value || 0;
+        const all_items = overviewAgg?.aggregations?.all_items as {
+            top_products: {
+                buckets: any[];
+            };
+        }
+
+        const topProducts = all_items.top_products.buckets.map((bucket) => {
+            const product_item = bucket.product_details.hits.hits[0]?._source;
+            return {
+                product_variant_id: bucket.key,
+                product_variant_name: product_item.product_variant_name,
+                total_quantity: bucket.total_quantity.value || 0,
+            };
+        });
 
         return new OkResponse('Overview statistics retrieved successfully', {
             totalUsers,
             newUsers,
             totalOrders,
             totalRevenue,
+            totalProfit,
+            topProducts,
         });
     }
 
@@ -118,14 +167,24 @@ class StatisticService {
             size: 0,
             query,
             aggs: {
-                totalProducts: {
-                    sum: {
-                        field: 'items.quantity',
+                all_items:
+                {
+                    nested: {
+                        path: 'items'
+                    },
+                    aggs: {
+                        totalProducts: {
+                            sum: {
+                                field: 'items.quantity',
+                            },
+                        },
                     },
                 },
             },
         });
-        const totalProducts = (productStatsAgg?.aggregations?.totalProducts as { value?: number })?.value || 0;
+        const totalProducts = (productStatsAgg?.aggregations?.all_items as {
+            totalProducts: { value?: number };
+        })?.totalProducts.value || 0;
 
         // Tổng lợi nhuận
         const totalProfitAgg = await elasticsearchService.searchAggregations('orders', {
@@ -167,12 +226,19 @@ class StatisticService {
                         },
                         totalOrders: {
                             value_count: {
-                                field: 'user_id.keyword', // Đếm số lượng đơn hàng
+                                field: 'user_id', // Đếm số lượng đơn hàng
                             },
                         },
-                        totalProducts: {
-                            sum: {
-                                field: 'items.quantity',
+                        all_items: {
+                            nested: {
+                                path: 'items'
+                            },
+                            aggs: {
+                                totalProducts: {
+                                    sum: {
+                                        field: 'items.quantity',
+                                    },
+                                },
                             },
                         },
                         totalProfit: {
@@ -199,7 +265,7 @@ class StatisticService {
                 date: bucket.key_as_string, // Ngày hoặc khoảng thời gian (dạng chuỗi)
                 totalRevenue: bucket.totalRevenue.value || 0, // Tổng doanh thu
                 totalOrders: bucket.totalOrders.value || 0, // Tổng số lượng đơn hàng
-                totalProducts: bucket.totalProducts.value || 0, // Tổng số lượng sản phẩm
+                totalProducts: bucket.all_items.totalProducts.value || 0, // Tổng số lượng sản phẩm
                 totalProfit: bucket.totalProfit.value || 0, // Tổng lợi nhuận
             })
         );

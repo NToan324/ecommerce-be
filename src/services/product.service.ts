@@ -332,7 +332,7 @@ class ProductService {
         if (category_id) {
             must.push({
                 term: {
-                    'category_id.keyword': category_id,
+                    'category_id': category_id,
                 },
             })
         }
@@ -340,7 +340,7 @@ class ProductService {
         if (brand_id) {
             must.push({
                 term: {
-                    'brand_id.keyword': brand_id,
+                    'brand_id': brand_id,
                 },
             })
         }
@@ -655,8 +655,7 @@ class ProductService {
                                     must: [
                                         {
                                             term: {
-                                                'items.product_variant_id.keyword':
-                                                    id,
+                                                'items.product_variant_id': id,
                                             },
                                         },
                                     ],
@@ -867,27 +866,54 @@ class ProductService {
                 size: 0,
                 aggs: {
                     best_selling_products: {
-                        terms: {
-                            field: 'items.product_variant_id.keyword',
-                            size: limit,
-                            order: { totalSold: 'desc' },
+                        nested: {
+                            path: "items"
                         },
                         aggs: {
-                            totalSold: {
-                                sum: {
-                                    field: 'items.quantity',
+                            top_products: {
+                                terms: {
+                                    field: "items.product_variant_id",
+                                    size: limit,
+                                    order: {
+                                        total_quantity: "desc"
+                                    }
                                 },
-                            },
-                        },
+                                aggs: {
+                                    // 3. Tính tổng số lượng cho mỗi nhóm sản phẩm
+                                    total_quantity: {
+                                        sum: {
+                                            field: "items.quantity"
+                                        }
+                                    },
+                                    // (Tùy chọn) Lấy tên sản phẩm từ một bản ghi
+                                    product_details: {
+                                        top_hits: {
+                                            size: 1,
+                                            _source: {
+                                                includes: ["items.product_variant_name"]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                 },
             })
-
+        
         // Lấy danh sách product_variant_id từ kết quả aggregation
-        const buckets =
-            bestSellingProducts?.aggregations?.best_selling_products?.buckets ||
-            []
-        const productVariantIds = buckets.map((bucket: any) => bucket.key)
+        const bestSellingProductsAgg = bestSellingProducts?.aggregations?.best_selling_products as {
+            top_products: {
+                buckets: any[]
+            }
+        }
+
+        console.log('bestSellingProductsAgg', bestSellingProductsAgg);
+        const buckets = bestSellingProductsAgg.top_products.buckets;
+
+        console.log('buckets', buckets);
+
+        const productVariantIds = buckets.map((bucket: any) => bucket.key);
 
         if (productVariantIds.length === 0) {
             return new OkResponse('No best-selling product variants found', {
@@ -899,6 +925,8 @@ class ProductService {
             })
         }
 
+        console.log('productVariantIds', productVariantIds);
+
         // Bước 2: Tìm kiếm thông tin chi tiết từ chỉ mục product_variants
         const { total, response } = await elasticsearchService.searchDocuments(
             'product_variants',
@@ -909,9 +937,9 @@ class ProductService {
                     bool: {
                         must: [
                             {
-                                terms: {
-                                    _id: productVariantIds, // Tìm kiếm theo danh sách product_variant_id
-                                },
+                                ids: {
+                                    values: productVariantIds
+                                }
                             },
                         ],
                         filter: [
@@ -941,8 +969,7 @@ class ProductService {
             const { original_price, ...rest } = hit._source;
             return {
                 _id: hit._id, ...rest, totalSold:
-                    buckets.find((bucket: any) => bucket.key === hit._id)?.totalSold
-                        .value || 0,
+                    buckets.find((bucket: any) => bucket.key === hit._id)?.total_quantity.value || 0,
             };
         });
 
@@ -1072,7 +1099,7 @@ class ProductService {
         if (category_ids && category_ids.length > 0) {
             must.push({
                 terms: {
-                    'category_id.keyword': category_ids,
+                    'category_id': category_ids,
                 },
             })
         }
@@ -1081,7 +1108,7 @@ class ProductService {
         if (brand_ids && brand_ids.length > 0) {
             must.push({
                 terms: {
-                    'brand_id.keyword': brand_ids,
+                    'brand_id': brand_ids,
                 },
             })
         }
@@ -1227,7 +1254,7 @@ class ProductService {
         if (category_ids && category_ids.length > 0) {
             must.push({
                 terms: {
-                    'category_id.keyword': category_ids,
+                    'category_id': category_ids,
                 },
             })
         }
@@ -1236,7 +1263,7 @@ class ProductService {
         if (brand_ids && brand_ids.length > 0) {
             must.push({
                 terms: {
-                    'brand_id.keyword': brand_ids,
+                    'brand_id': brand_ids,
                 },
             })
         }

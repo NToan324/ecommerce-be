@@ -247,20 +247,30 @@ class ReviewService {
         // Get user details from Elasticsearch
         let users: any[] = []
         if (userIds.length > 0) {
-            users = await Promise.all(
-                userIds.map(async (userId: any) => {
-                    const user: any =
-                        await elasticsearchService.getDocumentById(
-                            'users',
-                            userId
-                        )
-                    return {
-                        id: userId,
-                        name: user.fullName,
-                        avatar: user.avatar.url,
-                    }
-                })
+            const { total, response } = await elasticsearchService.searchDocuments(
+                'users',
+                {
+                    size: userIds.length,
+                    query: {
+                        bool: {
+                            must: {
+                                ids: {
+                                    values: userIds,
+                                },
+                            },
+                        },
+                    },
+                }
             )
+
+            users = response.map((user: any) => {
+                const { _id, fullName, avatar } = user
+                return {
+                    id: _id,
+                    name: fullName,
+                    avatar: avatar.url,
+                }
+            })
         } else {
             users = []
         }

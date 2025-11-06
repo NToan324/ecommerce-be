@@ -178,7 +178,7 @@ class OrderService {
                             must: [
                                 {
                                     term: {
-                                        'code.keyword': coupon_code,
+                                        'code': coupon_code,
                                     },
                                 },
                             ],

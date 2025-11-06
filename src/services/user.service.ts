@@ -186,7 +186,7 @@ class UserService {
         if (name) {
             must.push({
                 match: {
-                    'fullName.keyword': {
+                    'fullName': {
                         query: name,
                         operator: 'and',
                     },

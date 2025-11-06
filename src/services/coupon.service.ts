@@ -153,7 +153,7 @@ class CouponService {
                     bool: {
                         must: {
                             term: {
-                                'code.keyword': code,
+                                'code': code,
                             },
                         },
                         filter: {
@@ -182,7 +182,7 @@ class CouponService {
             {
                 query: {
                     term: {
-                        'code.keyword': code,
+                        'code': code,
                     },
                 },
             }
