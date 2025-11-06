@@ -11,6 +11,12 @@ services:
             - "9300:9300"
         networks:
             - elastic-network
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 20s
 
     redis:
         image: redis:7
@@ -19,6 +25,11 @@ services:
             - "6379:6379"
         networks:
             - elastic-network
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 2s
+            retries: 5
 
     node-backend-app:
         image: ecommerce-backend
@@ -27,12 +38,15 @@ services:
         ports:
             - "3000:3000"
         depends_on:
-            - elasticsearch
-            - redis
+            redis:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
         env_file:
             - .env.docker
         networks:
             - elastic-network
+        restart: unless-stopped
 
     worker:
         build: .
@@ -44,6 +58,7 @@ services:
             - .env.docker
         networks:
             - elastic-network
+        restart: unless-stopped
 
 networks:
     elastic-network:
