@@ -132,7 +132,7 @@ class UserService {
                         filter: [
                             {
                                 term: {
-                                    'role.keyword': 'CUSTOMER',
+                                    'role': 'CUSTOMER',
                                 },
                             },
                         ],
@@ -197,7 +197,7 @@ class UserService {
         if (email) {
             must.push({
                 term: {
-                    'email.keyword': email,
+                    'email': email,
                 },
             })
         }
