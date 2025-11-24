@@ -1,6 +1,16 @@
 import z from 'zod'
 
 export class AuthValidation {
+    static googleLoginSchema() {
+        return {
+            body: z
+                .object({
+                    token: z.string().nonempty('Token is required'),
+                })
+                .strict('Invalid field'),
+        }
+    }
+
     static signupSchema() {
         return {
             body: z

@@ -1,8 +1,15 @@
 import type { Request, Response } from 'express'
 import authService from '@/services/auth.service'
 import { CreatedResponse } from '@/core/success.response'
+import { BadRequestError } from '@/core/error.response'
 
 class AuthController {
+    async googleLogin(req: Request, res: Response) {
+        const { token } = req.body
+        if (!token) throw new BadRequestError('Token is required')
+        res.send(await authService.googleLogin(token))
+    }
+
     async signup(req: Request, res: Response) {
         const { email, fullName, password, address } = req.body
         const userResponse = await authService.signup({

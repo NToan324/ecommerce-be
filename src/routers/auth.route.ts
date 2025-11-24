@@ -6,6 +6,13 @@ import { validationRequest } from '@/middleware/validationRequest'
 
 const router = Router()
 
+//Google login
+router.post(
+    '/google-login',
+    validationRequest(AuthValidation.googleLoginSchema()),
+    asyncHandler(AuthController.googleLogin)
+)
+
 //Forgot password
 router.post(
     '/forgot-password',

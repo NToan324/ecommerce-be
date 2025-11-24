@@ -7,9 +7,107 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import emailConfig from '@/config/email'
 import elasticsearchService from './elasticsearch.service'
+import { oauthConfig } from '../config/oauth'
+import emailService from './sendEmail.service'
+
 dotenv.config()
 
+
 class AuthService {
+
+    async googleLogin(token: string) {
+
+
+        let ticket
+        try {
+            ticket = await oauthConfig.getClient().verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            })
+        } catch (error) {
+            throw new BadRequestError('Invalid Google Token')
+        }
+
+        const payload = ticket.getPayload()
+        if (!payload || !payload.email) {
+            throw new BadRequestError('Google token does not contain email')
+        }
+
+        const { email, name, picture } = payload
+
+        // Kiểm tra xem user đã tồn tại chưa
+        let foundUser = await userModel.findOne({ email })
+
+        // NẾU CHƯA CÓ TÀI KHOẢN: Tạo tài khoản mới
+        if (!foundUser) {
+            // Tạo mật khẩu ngẫu nhiên
+            const randomPassword = Math.random().toString(36).slice(-8)
+
+            // Tạo user mới
+            const newUser = await userModel.create({
+                fullName: name || 'Google User',
+                email: email,
+                password: randomPassword,
+                address: [],
+                avatar: {
+                    url: picture || '',
+                    public_id: '',
+                },
+                role: 'CUSTOMER',
+                isActive: true,
+            })
+
+            foundUser = newUser
+
+            const { _id, ...userWithoutId } = newUser.toObject()
+            await elasticsearchService.indexDocument(
+                'users',
+                _id.toString(),
+                userWithoutId
+            )
+
+            await emailService.sendEmailCreateAccount({
+                email,
+                name: name || 'User',
+                password: randomPassword,
+            })
+        }
+
+        // Đăng nhập (Generate Token)
+        // Nếu tài khoản bị khoá
+        if (!foundUser.isActive) {
+            throw new ForbiddenError('Account is not active')
+        }
+
+        // Tạo Access Token
+        const accessToken = jwt.sign(
+            {
+                id: foundUser._id,
+                email: foundUser.email || undefined,
+                role: foundUser.role,
+            },
+            process.env.ACCESS_TOKEN_SECRETE as string,
+            {
+                expiresIn: '1d',
+            }
+        )
+
+        const userResponse = {
+            _id: foundUser._id,
+            phone: foundUser.phone,
+            email: foundUser.email,
+            name: foundUser.fullName,
+            role: foundUser.role,
+            point: foundUser.loyalty_points,
+            avatar: foundUser.avatar,
+        }
+
+        return new OkResponse('Google Login successfully', {
+            accessToken,
+            user: userResponse,
+        })
+    }
+
     async signup(payload: Partial<User>) {
         const { fullName, email, address, password } = payload
         const isEmailExist = await userModel.exists({ email })
