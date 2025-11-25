@@ -13,11 +13,9 @@ import axios from 'axios'
 
 dotenv.config()
 
-
 class AuthService {
-
     async googleLogin(token: string) {
-        let email, name, picture;
+        let email, name, picture
 
         try {
             const googleResponse = await axios.get(
@@ -27,21 +25,20 @@ class AuthService {
                         Authorization: `Bearer ${token}`,
                     },
                 }
-            );
+            )
 
-            const payload = googleResponse.data;
+            const payload = googleResponse.data
 
-            email = payload.email;
-            name = payload.name;
-            picture = payload.picture;
-
+            email = payload.email
+            name = payload.name
+            picture = payload.picture
         } catch (error) {
-            console.error("Lỗi xác thực Google:", error);
-            throw new BadRequestError('Invalid Google Access Token');
+            console.error('Lỗi xác thực Google:', error)
+            throw new BadRequestError('Invalid Google Access Token')
         }
 
         if (!email) {
-            throw new BadRequestError('Google token does not contain email');
+            throw new BadRequestError('Google token does not contain email')
         }
 
         // Kiểm tra xem user đã tồn tại chưa

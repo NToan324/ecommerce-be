@@ -23,13 +23,12 @@ const userSchema = new Schema(
         },
         address: {
             type: [String],
-            default: []
+            default: [],
         },
         avatar: {
             url: {
                 type: String,
-                default:
-                    'https://www.gravatar.com/avatar/?d=mp',
+                default: 'https://www.gravatar.com/avatar/?d=mp',
             },
             public_id: {
                 type: String,

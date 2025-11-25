@@ -8,8 +8,6 @@ import authService from './auth.service'
 import ProductVariantModel from '@/models/productVariant.model'
 import { mailQueue } from '@/queue/mail.queue'
 import CouponModel, { Coupon } from '@/models/coupon.model'
-import { unknown } from 'zod/v4'
-import { match } from 'node:assert'
 
 class OrderService {
     // Tạo đơn hàng
@@ -178,7 +176,7 @@ class OrderService {
                             must: [
                                 {
                                     term: {
-                                        'code': coupon_code,
+                                        code: coupon_code,
                                     },
                                 },
                             ],
@@ -210,7 +208,8 @@ class OrderService {
         if (user_id && using_loyalty_points) {
             const user = await UserModel.findById(user_id)
 
-            currentLoyaltyPoints = ((user?.loyalty_points || 0.0) as unknown as number)
+            currentLoyaltyPoints = (user?.loyalty_points ||
+                0.0) as unknown as number
         }
 
         // Tính tổng tiền
@@ -734,7 +733,7 @@ class OrderService {
         if (customer_name) {
             must.push({
                 match: {
-                    'user_name': {
+                    user_name: {
                         query: customer_name,
                         operator: 'and',
                     },
@@ -866,7 +865,7 @@ class OrderService {
                 term: {
                     user_id: user_id,
                 },
-            },  
+            },
         ]
 
         console.log('Search query:', query)
@@ -884,7 +883,7 @@ class OrderService {
                             query: query,
                             operator: 'and',
                         },
-                    }
+                    },
                 },
             ]
 
@@ -892,7 +891,7 @@ class OrderService {
                 bool: {
                     should: should,
                     minimum_should_match: 1,
-                }
+                },
             })
         }
 
@@ -905,7 +904,7 @@ class OrderService {
             query: {
                 bool: {
                     must,
-                }
+                },
             },
             sort: [
                 {
@@ -947,7 +946,6 @@ class OrderService {
             data: orders,
         })
     }
-
 }
 
 const orderService = new OrderService()
