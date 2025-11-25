@@ -9,6 +9,7 @@ import emailConfig from '@/config/email'
 import elasticsearchService from './elasticsearch.service'
 import { oauthConfig } from '../config/oauth'
 import emailService from './sendEmail.service'
+import axios from 'axios'
 
 dotenv.config()
 
@@ -16,24 +17,32 @@ dotenv.config()
 class AuthService {
 
     async googleLogin(token: string) {
+        let email, name, picture;
 
-
-        let ticket
         try {
-            ticket = await oauthConfig.getClient().verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            })
+            const googleResponse = await axios.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const payload = googleResponse.data;
+
+            email = payload.email;
+            name = payload.name;
+            picture = payload.picture;
+
         } catch (error) {
-            throw new BadRequestError('Invalid Google Token')
+            console.error("Lỗi xác thực Google:", error);
+            throw new BadRequestError('Invalid Google Access Token');
         }
 
-        const payload = ticket.getPayload()
-        if (!payload || !payload.email) {
-            throw new BadRequestError('Google token does not contain email')
+        if (!email) {
+            throw new BadRequestError('Google token does not contain email');
         }
-
-        const { email, name, picture } = payload
 
         // Kiểm tra xem user đã tồn tại chưa
         let foundUser = await userModel.findOne({ email })
