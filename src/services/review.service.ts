@@ -3,7 +3,6 @@ import { OkResponse, CreatedResponse } from '@/core/success.response'
 import { BadRequestError } from '@/core/error.response'
 import productVariantModel from '@/models/productVariant.model'
 import reviewModel, { Review } from '@/models/review.model'
-import { number } from 'zod/v4'
 
 class ReviewService {
     // Thêm review cho sản phẩm
@@ -247,9 +246,8 @@ class ReviewService {
         // Get user details from Elasticsearch
         let users: any[] = []
         if (userIds.length > 0) {
-            const { total, response } = await elasticsearchService.searchDocuments(
-                'users',
-                {
+            const { total, response } =
+                await elasticsearchService.searchDocuments('users', {
                     size: userIds.length,
                     query: {
                         bool: {
@@ -260,8 +258,7 @@ class ReviewService {
                             },
                         },
                     },
-                }
-            )
+                })
 
             users = response.map((user: any) => {
                 const source = user._source || {}
