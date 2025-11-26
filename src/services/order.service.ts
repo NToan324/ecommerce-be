@@ -176,7 +176,7 @@ class OrderService {
                             must: [
                                 {
                                     term: {
-                                        code: coupon_code,
+                                        'code': coupon_code,
                                     },
                                 },
                             ],
@@ -529,7 +529,7 @@ class OrderService {
                         },
                         filter: {
                             term: {
-                                user_id: user_id,
+                                'user_id': user_id,
                             },
                         },
                     },
