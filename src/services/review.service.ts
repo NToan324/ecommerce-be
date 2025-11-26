@@ -264,11 +264,12 @@ class ReviewService {
             )
 
             users = response.map((user: any) => {
-                const { _id, fullName, avatar } = user
+                const source = user._source || {}
+                const { fullName, avatar } = source
                 return {
-                    id: _id,
+                    id: user._id,
                     name: fullName,
-                    avatar: avatar.url,
+                    avatar: avatar.url? avatar.url : null,
                 }
             })
         } else {
