@@ -829,12 +829,12 @@ class ProductService {
             )
         }
 
-        const productVariants = response.map((hit: any) => ({
+        let productVariants = response.map((hit: any) => ({
             _id: hit._id,
             ...hit._source,
         }))
 
-        
+        productVariants = await this.mappingCategoryAndBrand(productVariants)
 
         const pageNumber = parseInt(page.toString(), 10)
         const limitNumber = parseInt(limit.toString(), 10)
@@ -1350,10 +1350,12 @@ class ProductService {
             })
         }
 
-        const productVariants = response.map((hit: any) => ({
+        let productVariants = response.map((hit: any) => ({
             _id: hit._id,
             ...hit._source,
         }))
+
+        productVariants = await this.mappingCategoryAndBrand(productVariants)
 
         if (total === 0) {
             return new OkResponse('No product variants found', {
