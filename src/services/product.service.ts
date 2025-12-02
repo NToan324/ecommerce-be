@@ -1185,10 +1185,12 @@ class ProductService {
             query
         )
 
-        const productVariants = response.map((hit: any) => {
+        let productVariants = response.map((hit: any) => {
             const { original_price, ...rest } = hit._source || {};
             return { _id: hit._id, ...rest };
         })
+
+        productVariants = await this.mappingCategoryAndBrand(productVariants)
 
         if (total === 0) {
             return new OkResponse('No product variants found', {
